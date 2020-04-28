@@ -26,7 +26,7 @@ public class User implements Serializable
     @Id
     @Basic(optional = false)
     @NotNull
-    @Column(name = "user_name", length = 25)
+    @Column(name = "user_name", length = 25, unique = true)
     private String userName;
     @Basic(optional = false)
     @NotNull
@@ -42,8 +42,9 @@ public class User implements Serializable
     })
     @ManyToMany
     private List<Role> roleList = new ArrayList();
-    @JoinTable(name = "user_country")
+    
     @ManyToMany
+    @JoinTable(name = "user_country")
     private Set<Country> countryTracked;
 
     public List<String> getRolesAsStrings()
@@ -75,7 +76,7 @@ public class User implements Serializable
         this.userName = userName;
         String hashed = BCrypt.hashpw(userPass, BCrypt.gensalt());
         this.userPass = hashed;
-        this.countryTracked = new HashSet();
+//        this.countryTracked = new HashSet();
     }
 
     public static long getSerialVersionUID()
