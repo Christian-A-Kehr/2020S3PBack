@@ -5,11 +5,11 @@
  */
 package entities;
 
-import java.util.Date;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
@@ -18,12 +18,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
 
 /**
  *
  * @author Christian and Brandstrup
  */
 @Entity
+@Table(name = "countries")
 public class Country implements Serializable
 {
 
@@ -36,6 +39,7 @@ public class Country implements Serializable
     @Column(nullable = false, unique = true)
     private String countryCode;
     private long population, newConfirmedInfected, totalConfirmedInfected, newRecovered, totalRecovered, newDeaths, totalDeaths;
+    @Temporal(javax.persistence.TemporalType.DATE)
     private Date date;
     @ManyToMany(mappedBy = "countryTracked")
     private Set<User> userTrackers;
@@ -187,13 +191,18 @@ public class Country implements Serializable
         return userTrackers;
     }
 
-    public void setUserTrackers(Set<User> userTrackers)
+    public void addUserTrackers(User user)
     {
-        this.userTrackers = userTrackers;
+        this.userTrackers.add(user);
+        user.getCountryTracked().add(this);
     }
 
-    
-    
+    public void removeUserTrackers(User user)
+    {
+        this.userTrackers.remove(user);
+        user.getCountryTracked().remove(this);
+    }
+
     @Override
     public int hashCode()
     {
