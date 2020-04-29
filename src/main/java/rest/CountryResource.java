@@ -59,7 +59,7 @@ public class CountryResource
         }
         catch (NotFoundException ex)
         {
-            return ex.getMessage();
+            return "{\"msg\":" + ex.getMessage() + "}";
         }
     }
     
@@ -75,7 +75,7 @@ public class CountryResource
 //        }
 //        catch (NotFoundException ex)
 //        {
-//            return ex.getMessage();
+//            return "{\"msg\":" + ex.getMessage() + "}";
 //        }
 //    }
     

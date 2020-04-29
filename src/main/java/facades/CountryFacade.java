@@ -80,9 +80,14 @@ public class CountryFacade
             TypedQuery<CountryData> query
                     = em.createQuery("SELECT o FROM CountryData o", CountryData.class);
 
-            if (query.getResultList().isEmpty() || query.getResultList() == null)
+            if (query.getResultList() == null)
             {
                 throw new NotFoundException("No objects retreived from database.");
+            }
+            
+            if (query.getResultList().isEmpty())
+            {
+                throw new NotFoundException("Database is empty.");
             }
             
             query.getResultList().forEach((o) ->
