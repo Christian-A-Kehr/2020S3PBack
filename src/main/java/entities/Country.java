@@ -27,8 +27,8 @@ import javax.persistence.Temporal;
  * @author Christian and Brandstrup
  */
 @Entity
+@NamedQuery(name = "Country.deleteAllRows", query = "DELETE from Country")
 @Table(name = "countries")
-@NamedQuery(name = "countries.deleteAllRows", query = "DELETE from countries")
 public class Country implements Serializable
 {
 
