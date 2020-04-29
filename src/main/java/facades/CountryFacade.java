@@ -56,7 +56,7 @@ public class CountryFacade
         EntityManager em = emf.createEntityManager();
         try
         {
-            long countryCount = (long) em.createQuery("SELECT COUNT(o) FROM Country o").getSingleResult();
+            long countryCount = (long) em.createQuery("SELECT COUNT(o) FROM CountryData o").getSingleResult();
             return countryCount;
         }
         finally
@@ -78,17 +78,17 @@ public class CountryFacade
         {
             List<CountryBasicInDTO> countryBasicDTOList = new ArrayList<>();
             TypedQuery<CountryData> query
-                    = em.createQuery("SELECT o FROM Country o", CountryData.class);
+                    = em.createQuery("SELECT o FROM CountryData o", CountryData.class);
 
             if (query.getResultList().isEmpty() || query.getResultList() == null)
             {
                 throw new NotFoundException("No objects retreived from database.");
             }
             
-            for (CountryData o : query.getResultList())
+            query.getResultList().forEach((o) ->
             {
                 countryBasicDTOList.add(new CountryBasicInDTO(o));
-            }
+            });
 
             return countryBasicDTOList;
         }
@@ -98,26 +98,32 @@ public class CountryFacade
         }
     }
 
-    public CountryInDTO getInCountryById(int id) throws NotFoundException
-    {
-        EntityManager em = getEntityManager();
-        try
-        {
-            CountryData o = em.find(CountryData.class, id);
-            if (o == null)
-            {
-                throw new NotFoundException("No object matching provided id exists in database.");
-            }
-            return new CountryInDTO(o);
-        }
-        catch (IllegalArgumentException ex)
-        {
-            throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-        }
-        finally
-        {
-            em.close();
-        }
-    }
+//    /**
+//     * 
+//     * @param code
+//     * @return
+//     * @throws NotFoundException 
+//     */
+//    public CountryInDTO getLatestCovidEntryForCountryById(String code) throws NotFoundException
+//    {
+//        EntityManager em = getEntityManager();
+//        try
+//        {
+//            
+//            if (con == null || cov == null)
+//            {
+//                throw new NotFoundException("No object matching provided id exists in database.");
+//            }
+//            return new CountryInDTO(con, cov);
+//        }
+//        catch (IllegalArgumentException ex)
+//        {
+//            throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
+//        }
+//        finally
+//        {
+//            em.close();
+//        }
+//    }
 
 }
