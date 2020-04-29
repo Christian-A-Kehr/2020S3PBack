@@ -3,11 +3,18 @@ package rest;
 import facades.CountryFacade;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dtos.CountryBasicInDTO;
+import dtos.CountryInDTO;
+import errorhandling.NotFoundException;
 import utils.EMF_Creator;
 import facades.FacadeExample;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -31,13 +38,44 @@ public class CountryResource
         return "{\"msg\":\"Hello World\"}";
     }
 
-    @Path("count")
     @GET
+    @Path("count")
     @Produces(MediaType.APPLICATION_JSON)
     public String getRenameMeCount()
     {
-        long count = FACADE.getCountryCount();
+        long count = FACADE.getInCountryCount();
         return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAllInCountries()
+    {
+        List<CountryBasicInDTO> cBasicDTOList;
+        try
+        {
+            cBasicDTOList = FACADE.getAllInCountries();
+            return GSON.toJson(cBasicDTOList);
+        }
+        catch (NotFoundException ex)
+        {
+            return ex.getMessage();
+        }
+    }
+    
+    @GET
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInCountryById(@PathParam("id") int id)
+    {
+        try
+        {
+            CountryInDTO hDTO = FACADE.getInCountryById(id);
+            return GSON.toJson(hDTO);
+        }
+        catch (NotFoundException ex)
+        {
+            return ex.getMessage();
+        }
+    }
 }
