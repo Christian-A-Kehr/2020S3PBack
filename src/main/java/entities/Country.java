@@ -18,6 +18,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
@@ -27,6 +28,7 @@ import javax.persistence.Temporal;
  */
 @Entity
 @Table(name = "countries")
+@NamedQuery(name = "countries.deleteAllRows", query = "DELETE from countries")
 public class Country implements Serializable
 {
 
