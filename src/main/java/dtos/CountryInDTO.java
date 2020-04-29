@@ -6,6 +6,7 @@
 package dtos;
 
 import entities.CountryData;
+import entities.CovidData;
 
 /**
  *
@@ -18,18 +19,18 @@ public class CountryInDTO
     long population, newConfirmedInfected, totalConfirmedInfected, newRecovered,
             totalRecovered, newDeaths, totalDeaths;
 
-    public CountryInDTO(CountryData c)
+    public CountryInDTO(CountryData con, CovidData cov)
     {
-        this.countryName = c.getCountryName();
-        this.countryCode = c.getCountryCode();
-        this.date = String.valueOf(c.getDate());
-        this.population = c.getPopulation();
-        this.newConfirmedInfected = c.getNewConfirmedInfected();
-        this.totalConfirmedInfected = c.getTotalConfirmedInfected();
-        this.newRecovered = c.getNewRecovered();
-        this.totalRecovered = c.getTotalRecovered();
-        this.newDeaths = c.getNewDeaths();
-        this.totalDeaths = c.getTotalDeaths();
+        this.countryName = con.getCountryName();
+        this.countryCode = con.getCountryCode();
+        this.date = String.valueOf(cov.getDate());
+        this.population = con.getPopulation();
+        this.newConfirmedInfected = cov.getNewConfirmedInfected();
+        this.totalConfirmedInfected = cov.getTotalConfirmedInfected();
+        this.newRecovered = cov.getNewRecovered();
+        this.totalRecovered = cov.getTotalRecovered();
+        this.newDeaths = cov.getNewDeaths();
+        this.totalDeaths = cov.getTotalDeaths();
     }
 
     public String getCountryName()
