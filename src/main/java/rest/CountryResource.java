@@ -31,21 +31,21 @@ public class CountryResource
     private static final CountryFacade FACADE = CountryFacade.getCountryFacade(EMF);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public String demo()
-    {
-        return "{\"msg\":\"Hello World\"}";
-    }
-
 //    @GET
-//    @Path("count")
 //    @Produces(MediaType.APPLICATION_JSON)
-//    public String getRenameMeCount()
+//    public String demo()
 //    {
-//        long count = FACADE.getInCountryCount();
-//        return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
+//        return "{\"msg\":\"Hello World\"}";
 //    }
+
+    @GET
+    @Path("count")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getRenameMeCount()
+    {
+        long count = FACADE.getInCountryCount();
+        return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
+    }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
