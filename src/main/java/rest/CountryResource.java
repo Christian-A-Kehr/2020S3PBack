@@ -70,7 +70,7 @@ public class CountryResource
     {
         try
         {
-            CountryInDTO hDTO = FACADE.getInCountryById(id);
+            CountryInDTO hDTO = FACADE.getLatestCovidEntryForCountryById(id);
             return GSON.toJson(hDTO);
         }
         catch (NotFoundException ex)
