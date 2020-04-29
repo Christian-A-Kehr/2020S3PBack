@@ -5,7 +5,7 @@
  */
 package dtos;
 
-import entities.Country;
+import entities.CountryData;
 
 /**
  *
@@ -18,7 +18,7 @@ public class CountryInDTO
     long population, newConfirmedInfected, totalConfirmedInfected, newRecovered,
             totalRecovered, newDeaths, totalDeaths;
 
-    public CountryInDTO(Country c)
+    public CountryInDTO(CountryData c)
     {
         this.countryName = c.getCountryName();
         this.countryCode = c.getCountryCode();

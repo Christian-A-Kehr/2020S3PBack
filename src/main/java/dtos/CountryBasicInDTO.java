@@ -5,7 +5,7 @@
  */
 package dtos;
 
-import entities.Country;
+import entities.CountryData;
 
 /**
  *
@@ -15,7 +15,7 @@ public class CountryBasicInDTO
 {
     String countryName, countryCode;
     
-    public CountryBasicInDTO(Country c)
+    public CountryBasicInDTO(CountryData c)
     {
         this.countryName = c.getCountryName();
         this.countryCode = c.getCountryCode();

@@ -2,7 +2,7 @@ package facades;
 
 import dtos.CountryBasicInDTO;
 import dtos.CountryInDTO;
-import entities.Country;
+import entities.CountryData;
 import errorhandling.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,15 +77,15 @@ public class CountryFacade
         try
         {
             List<CountryBasicInDTO> countryBasicDTOList = new ArrayList<>();
-            TypedQuery<Country> query
-                    = em.createQuery("SELECT o FROM Country o", Country.class);
+            TypedQuery<CountryData> query
+                    = em.createQuery("SELECT o FROM Country o", CountryData.class);
 
             if (query.getResultList().isEmpty() || query.getResultList() == null)
             {
                 throw new NotFoundException("No objects retreived from database.");
             }
             
-            for (Country o : query.getResultList())
+            for (CountryData o : query.getResultList())
             {
                 countryBasicDTOList.add(new CountryBasicInDTO(o));
             }
@@ -103,7 +103,7 @@ public class CountryFacade
         EntityManager em = getEntityManager();
         try
         {
-            Country o = em.find(Country.class, id);
+            CountryData o = em.find(CountryData.class, id);
             if (o == null)
             {
                 throw new NotFoundException("No object matching provided id exists in database.");
