@@ -178,11 +178,43 @@ public class Country implements Serializable
         this.totalDeaths = totalDeaths;
     }
 
+    /**
+     * Retrieves a Car's Date as a LocalDate.
+     *
+     * @return a LocalDateTime.
+     */
+    public LocalDateTime getLocalDate()
+    {
+        return convertToLocalDateTimeViaInstant(date);
+    }
+
+    /**
+     * Retrieves a Car's Date as a java.util.Date.
+     *
+     * @return a Date.
+     */
     public Date getDate()
     {
         return date;
     }
 
+    /**
+     * Updates the Date using a LocalDate format.
+     *
+     * @param date LocalDate, use LocalDate.now() for the current time and use
+     * LocalDate.of(2001, Month.MARCH, 13) [as an example] for specific dates.
+     */
+    public void setDate(LocalDate date)
+    {
+        this.date = convertToDateViaInstant(date);
+    }
+
+    /**
+     * Updates the Date using a java.util.Date format.
+     *
+     * @param date A regular java.util.Date, which is the SQL's preferred
+     * format.
+     */
     public void setDate(Date date)
     {
         this.date = date;
