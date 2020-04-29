@@ -179,7 +179,7 @@ public class Country implements Serializable
     }
 
     /**
-     * Retrieves a Car's Date as a LocalDate.
+     * Retrieves the Date as a LocalDate.
      *
      * @return a LocalDateTime.
      */
@@ -189,7 +189,7 @@ public class Country implements Serializable
     }
 
     /**
-     * Retrieves a Car's Date as a java.util.Date.
+     * Retrieves the Date as a java.util.Date.
      *
      * @return a Date.
      */
