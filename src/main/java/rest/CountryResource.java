@@ -38,17 +38,17 @@ public class CountryResource
         return "{\"msg\":\"Hello World\"}";
     }
 
-    @GET
-    @Path("count")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getRenameMeCount()
-    {
-        long count = FACADE.getInCountryCount();
-        return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
-    }
+//    @GET
+//    @Path("count")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public String getRenameMeCount()
+//    {
+//        long count = FACADE.getInCountryCount();
+//        return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
+//    }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public String getAllInCountries()
     {
         List<CountryBasicInDTO> cBasicDTOList;
