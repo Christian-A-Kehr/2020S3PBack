@@ -36,6 +36,13 @@ public class CountryInDTO
         }
     }
 
+    public CountryInDTO(CountryData cou)
+    {
+        this.countryName = cou.getCountryName();
+        this.countryCode = cou.getCountryCode();
+        this.population = cou.getPopulation();
+    }
+
     public String getCountryName()
     {
         return countryName;
