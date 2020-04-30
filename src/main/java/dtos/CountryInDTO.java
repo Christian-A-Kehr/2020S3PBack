@@ -23,14 +23,17 @@ public class CountryInDTO
     {
         this.countryName = cou.getCountryName();
         this.countryCode = cou.getCountryCode();
-        this.date = String.valueOf(cov.getDate());
         this.population = cou.getPopulation();
-        this.newConfirmedInfected = cov.getNewConfirmedInfected();
-        this.totalConfirmedInfected = cov.getTotalConfirmedInfected();
-        this.newRecovered = cov.getNewRecovered();
-        this.totalRecovered = cov.getTotalRecovered();
-        this.newDeaths = cov.getNewDeaths();
-        this.totalDeaths = cov.getTotalDeaths();
+        if (cov != null)
+        {
+            this.date = String.valueOf(cov.getDate());
+            this.newConfirmedInfected = cov.getNewConfirmedInfected();
+            this.totalConfirmedInfected = cov.getTotalConfirmedInfected();
+            this.newRecovered = cov.getNewRecovered();
+            this.totalRecovered = cov.getTotalRecovered();
+            this.newDeaths = cov.getNewDeaths();
+            this.totalDeaths = cov.getTotalDeaths();
+        }
     }
 
     public String getCountryName()
