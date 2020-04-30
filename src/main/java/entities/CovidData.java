@@ -134,8 +134,6 @@ public class CovidData implements Serializable
     /**
      * Don't use this method. Instead call addCovidEntry from the CountryData 
      * you are adding this entry to.
-     * 
-     * 
      */
     public void setCountry(CountryData country)
     {
