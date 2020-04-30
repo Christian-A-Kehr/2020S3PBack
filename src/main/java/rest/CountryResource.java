@@ -7,7 +7,6 @@ import dtos.CountryBasicInDTO;
 import dtos.CountryInDTO;
 import errorhandling.NotFoundException;
 import utils.EMF_Creator;
-import facades.FacadeExample;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,18 +42,18 @@ public class CountryResource
     @Produces(MediaType.APPLICATION_JSON)
     public String getRenameMeCount()
     {
-        long count = FACADE.getInCountryCount();
+        long count = FACADE.getInternalCountryCount();
         return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAllInCountries()
+    public String getAllInBasicCountries()
     {
         List<CountryBasicInDTO> cBasicDTOList;
         try
         {
-            cBasicDTOList = FACADE.getAllInCountries();
+            cBasicDTOList = FACADE.getAllInternalCountries();
             return GSON.toJson(cBasicDTOList);
         }
         catch (NotFoundException ex)
@@ -70,7 +69,7 @@ public class CountryResource
     {
         try
         {
-            CountryInDTO cDTO = FACADE.getLatestCovidEntryForCountryById(code);
+            CountryInDTO cDTO = FACADE.getLatestInternalCovidEntryForCountryByCode(code);
             return GSON.toJson(cDTO);
         }
         catch (NotFoundException ex)
