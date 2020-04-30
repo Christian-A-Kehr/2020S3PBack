@@ -63,20 +63,20 @@ public class CountryResource
         }
     }
     
-//    @GET
-//    @Path("/{code}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public String getInCountryById(@PathParam("code") String code)
-//    {
-//        try
-//        {
-//            CountryInDTO hDTO = FACADE.getLatestCovidEntryForCountryById(code);
-//            return GSON.toJson(hDTO);
-//        }
-//        catch (NotFoundException ex)
-//        {
-//            return "{\"msg\":" + ex.getMessage() + "}";
-//        }
-//    }
+    @GET
+    @Path("/{code}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getLatestByCountryCode(@PathParam("code") String code)
+    {
+        try
+        {
+            CountryInDTO cDTO = FACADE.getLatestCovidEntryForCountryById(code);
+            return GSON.toJson(cDTO);
+        }
+        catch (NotFoundException ex)
+        {
+            return "{\"msg\":" + ex.getMessage() + "}";
+        }
+    }
     
 }
