@@ -19,12 +19,12 @@ public class CountryInDTO
     long population, newConfirmedInfected, totalConfirmedInfected, newRecovered,
             totalRecovered, newDeaths, totalDeaths;
 
-    public CountryInDTO(CountryData con, CovidData cov)
+    public CountryInDTO(CountryData cou, CovidData cov)
     {
-        this.countryName = con.getCountryName();
-        this.countryCode = con.getCountryCode();
+        this.countryName = cou.getCountryName();
+        this.countryCode = cou.getCountryCode();
         this.date = String.valueOf(cov.getDate());
-        this.population = con.getPopulation();
+        this.population = cou.getPopulation();
         this.newConfirmedInfected = cov.getNewConfirmedInfected();
         this.totalConfirmedInfected = cov.getTotalConfirmedInfected();
         this.newRecovered = cov.getNewRecovered();
