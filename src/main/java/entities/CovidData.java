@@ -11,23 +11,24 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Objects;
-import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
 /**
  *
- * @author Christian and Brandstrup
+ * @author Brandstrup
  */
 @Entity
-@Table(name = "countries")
-public class Country implements Serializable
+@NamedQuery(name = "CovidData.deleteAllRows", query = "DELETE from CovidData")
+@Table(name = "covidEntries")
+public class CovidData implements Serializable
 {
 
     private static final long serialVersionUID = 1L;
@@ -35,36 +36,38 @@ public class Country implements Serializable
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String countryName;
     @Column(nullable = false, unique = true)
-    private String countryCode;
-    private long population, newConfirmedInfected, totalConfirmedInfected, newRecovered, totalRecovered, newDeaths, totalDeaths;
     @Temporal(javax.persistence.TemporalType.DATE)
     private Date date;
-    @ManyToMany(mappedBy = "countryTracked")
-    private Set<User> userTrackers;
 
-    public Country()
+    @ManyToOne
+    private CountryData country;
+
+    long newConfirmedInfected, totalConfirmedInfected, newRecovered, totalRecovered, newDeaths, totalDeaths;
+
+    public CovidData()
     {
     }
 
-    public Country(
-            String countryName, String countryCode, long population,
-            long newConfirmedInfected, long totalConfirmedInfected,
-            long newRecovered, long totalRecovered, long newDeaths,
-            long totalDeaths, Date date)
+    public CovidData(
+            Long id, Date date, CountryData country, long newConfirmedInfected,
+            long totalConfirmedInfected, long newRecovered, long totalRecovered,
+            long newDeaths, long totalDeaths)
     {
-        this.countryName = countryName;
-        this.countryCode = countryCode;
-        this.population = population;
+        this.id = id;
+        this.date = date;
+        this.country = country;
         this.newConfirmedInfected = newConfirmedInfected;
         this.totalConfirmedInfected = totalConfirmedInfected;
         this.newRecovered = newRecovered;
         this.totalRecovered = totalRecovered;
         this.newDeaths = newDeaths;
         this.totalDeaths = totalDeaths;
-        this.date = date;
-        this.userTrackers = userTrackers;
+    }
+
+    public Long getId()
+    {
+        return id;
     }
 
     private Date convertToDateViaInstant(LocalDate dateToConvert)
@@ -81,39 +84,60 @@ public class Country implements Serializable
                 .toLocalDateTime();
     }
 
-    public Long getId()
+    /**
+     * Retrieves the Date as a LocalDate.
+     *
+     * @return a LocalDateTime.
+     */
+    public LocalDateTime getLocalDate()
     {
-        return id;
+        return convertToLocalDateTimeViaInstant(date);
     }
 
-    public String getCountryName()
+    /**
+     * Retrieves the Date as a java.util.Date.
+     *
+     * @return a Date.
+     */
+    public Date getDate()
     {
-        return countryName;
+        return date;
     }
 
-    public void setCountryName(String countryName)
+    /**
+     * Updates the Date using a LocalDate format.
+     *
+     * @param date LocalDate, use LocalDate.now() for the current time and use
+     * LocalDate.of(2001, Month.MARCH, 13) [as an example] for specific dates.
+     */
+    public void setDate(LocalDate date)
     {
-        this.countryName = countryName;
+        this.date = convertToDateViaInstant(date);
     }
 
-    public String getCountryCode()
+    /**
+     * Updates the Date using a java.util.Date format.
+     *
+     * @param date A regular java.util.Date, which is the SQL's preferred
+     * format.
+     */
+    public void setDate(Date date)
     {
-        return countryCode;
+        this.date = date;
     }
 
-    public void setCountryCode(String countryCode)
+    public CountryData getCountry()
     {
-        this.countryCode = countryCode;
+        return country;
     }
 
-    public long getPopulation()
+    /**
+     * Don't use this method. Instead call addCovidEntry from the CountryData 
+     * you are adding this entry to.
+     */
+    public void setCountry(CountryData country)
     {
-        return population;
-    }
-
-    public void setPopulation(long population)
-    {
-        this.population = population;
+        this.country = country;
     }
 
     public long getNewConfirmedInfected()
@@ -175,38 +199,11 @@ public class Country implements Serializable
     {
         this.totalDeaths = totalDeaths;
     }
-
-    public Date getDate()
-    {
-        return date;
-    }
-
-    public void setDate(Date date)
-    {
-        this.date = date;
-    }
-
-    public Set<User> getUserTrackers()
-    {
-        return userTrackers;
-    }
-
-    public void addUserTrackers(User user)
-    {
-        this.userTrackers.add(user);
-        user.getCountryTracked().add(this);
-    }
-
-    public void removeUserTrackers(User user)
-    {
-        this.userTrackers.remove(user);
-        user.getCountryTracked().remove(this);
-    }
-
+    
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.countryCode);
+        return Objects.hash(this.date);
     }
 
     @Override
@@ -224,8 +221,8 @@ public class Country implements Serializable
         {
             return false;
         }
-        final Country other = (Country) obj;
-        if (!Objects.equals(this.countryCode, other.countryCode))
+        final CovidData other = (CovidData) obj;
+        if (!Objects.equals(this.date, other.date))
         {
             return false;
         }

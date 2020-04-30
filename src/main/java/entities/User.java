@@ -42,10 +42,10 @@ public class User implements Serializable
     })
     @ManyToMany
     private List<Role> roleList = new ArrayList();
-    
+
     @ManyToMany
     @JoinTable(name = "user_country")
-    private Set<Country> countryTracked;
+    private Set<CountryData> countryTracked;
 
     public List<String> getRolesAsStrings()
     {
@@ -120,7 +120,7 @@ public class User implements Serializable
         roleList.add(userRole);
     }
 
-    public Set<Country> getCountryTracked()
+    public Set<CountryData> getCountryTracked()
     {
         return countryTracked;
     }
