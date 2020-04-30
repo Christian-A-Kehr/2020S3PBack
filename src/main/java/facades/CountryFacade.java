@@ -17,7 +17,7 @@ import javax.persistence.TypedQuery;
 
 /**
  *
- * @author Brandstrup
+ * @author Brandstrup & Christian
  */
 public class CountryFacade
 {
@@ -30,6 +30,19 @@ public class CountryFacade
     {
     }
 
+    /**
+     * This facade contains the following methods in order:
+     * 
+     * getInternalCountryCount
+     * getAllInternalCountries
+     * getLatestInternalCovidEntryForCountryByCode
+     * getAllInternalCovidEntriesForCountryByCode
+     * getInternalCovidEntryForCountryByCodeByDate
+     * getAllExternalCountries
+     * getExternalCountryByCode
+     * getAllExternalCovidEntriesForCountryByName
+     */
+    
     /**
      *
      * @param _emf
@@ -54,8 +67,9 @@ public class CountryFacade
      * Counts the amount of entries existing in the database.
      *
      * @return The amount of existing entries in the database.
+     * @author Brandstrup
      */
-    public long getInCountryCount()
+    public long getInternalCountryCount()
     {
         EntityManager em = emf.createEntityManager();
         try
@@ -74,8 +88,9 @@ public class CountryFacade
      * Retrieves all entries from the database as DTO objects.
      *
      * @return a List of DTO objects.
+     * @author Brandstrup
      */
-    public List<CountryBasicInDTO> getAllInCountries() throws NotFoundException
+    public List<CountryBasicInDTO> getAllInternalCountries() throws NotFoundException
     {
         EntityManager em = getEntityManager();
         try
@@ -112,8 +127,9 @@ public class CountryFacade
      * @param code
      * @return
      * @throws NotFoundException
+     * @author Brandstrup
      */
-    public CountryInDTO getLatestCovidEntryForCountryById(String code) throws NotFoundException
+    public CountryInDTO getLatestInternalCovidEntryForCountryByCode(String code) throws NotFoundException
     {
         EntityManager em = getEntityManager();
         try
@@ -143,7 +159,7 @@ public class CountryFacade
 
                 return new CountryInDTO(cou, cov);
             }
-            
+
             return new CountryInDTO(cou);
         }
         catch (IllegalArgumentException ex)
@@ -156,4 +172,46 @@ public class CountryFacade
         }
     }
 
+    /**
+     * @author Brandstrup
+     */
+    public void getAllInternalCovidEntriesForCountryByCode()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @author Brandstrup
+     */
+    public void getInternalCovidEntryForCountryByCodeByDate()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @author Christian
+     */
+    public void getAllExternalCountries()
+    {
+        //http://restcountries.eu/rest/v1/
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @author Christian
+     */
+    public void getExternalCountryByCode()
+    {
+        //http://restcountries.eu/rest/v1/alpha?codes=de
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @author Brandstrup
+     */
+    public void getAllExternalCovidEntriesForCountryByName()
+    {
+        //https://api.covid19api.com/total/dayone/country/germany
+        throw new UnsupportedOperationException();
+    }
 }
