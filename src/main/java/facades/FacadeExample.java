@@ -10,42 +10,56 @@ import javax.persistence.Persistence;
  *
  * Rename Class to a relevant name Add add relevant facade methods
  */
-public class FacadeExample {
+public class FacadeExample
+{
 
     private static FacadeExample instance;
     private static EntityManagerFactory emf;
-    
+
     //Private Constructor to ensure Singleton
-    private FacadeExample() {}
-    
-    
+    private FacadeExample()
+    {
+    }
+
     /**
-     * 
+     *
      * @param _emf
      * @return an instance of this facade class.
      */
-    public static FacadeExample getFacadeExample(EntityManagerFactory _emf) {
-        if (instance == null) {
+    public static FacadeExample getFacadeExample(EntityManagerFactory _emf)
+    {
+        if (instance == null)
+        {
             emf = _emf;
             instance = new FacadeExample();
         }
         return instance;
     }
 
-    private EntityManager getEntityManager() {
+    private EntityManager getEntityManager()
+    {
         return emf.createEntityManager();
     }
-    
+
     //TODO Remove/Change this before use
-    public long getRenameMeCount(){
+    /**
+     * Counts the amount of entries existing in the database.
+     *
+     * @return The amount of existing entries in the database.
+     */
+    public long getRenameMeCount()
+    {
         EntityManager em = emf.createEntityManager();
-        try{
-            long renameMeCount = (long)em.createQuery("SELECT COUNT(r) FROM RenameMe r").getSingleResult();
+        try
+        {
+            long renameMeCount = (long) em.createQuery("SELECT COUNT(o) FROM RenameMe o").getSingleResult();
             return renameMeCount;
-        }finally{  
+        }
+        finally
+        {
             em.close();
         }
-        
+
     }
 
 }
