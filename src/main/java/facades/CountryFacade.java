@@ -1,6 +1,7 @@
 package facades;
 
 import dtos.CountryBasicInDTO;
+import dtos.CountryExDataDTO;
 import dtos.CountryInDTO;
 import entities.CountryData;
 import entities.CovidData;
@@ -32,17 +33,13 @@ public class CountryFacade
 
     /**
      * This facade contains the following methods in order:
-     * 
-     * getInternalCountryCount
-     * getAllInternalCountries
+     *
+     * getInternalCountryCount getAllInternalCountries
      * getLatestInternalCovidEntryForCountryByCode
      * getAllInternalCovidEntriesForCountryByCode
-     * getInternalCovidEntryForCountryByCodeByDate
-     * getAllExternalCountries
-     * getExternalCountryByCode
-     * getAllExternalCovidEntriesForCountryByName
+     * getInternalCovidEntryForCountryByCodeByDate getAllExternalCountries
+     * getExternalCountryByCode getAllExternalCovidEntriesForCountryByName
      */
-    
     /**
      *
      * @param _emf
@@ -76,8 +73,7 @@ public class CountryFacade
         {
             long countryCount = (long) em.createQuery("SELECT COUNT(o) FROM CountryData o").getSingleResult();
             return countryCount;
-        }
-        finally
+        } finally
         {
             em.close();
         }
@@ -115,8 +111,7 @@ public class CountryFacade
             });
 
             return countryBasicDTOList;
-        }
-        finally
+        } finally
         {
             em.close();
         }
@@ -161,12 +156,10 @@ public class CountryFacade
             }
 
             return new CountryInDTO(cou);
-        }
-        catch (IllegalArgumentException ex)
+        } catch (IllegalArgumentException ex)
         {
             throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-        }
-        finally
+        } finally
         {
             em.close();
         }
@@ -190,20 +183,69 @@ public class CountryFacade
 
     /**
      * @author Christian
+     * @param DTOList
+     * @return
      */
-    public void getAllExternalCountries()
+    public String getAllExternalCountries(List<CountryExDataDTO> DTOList) throws NotFoundException
     {
-        //http://restcountries.eu/rest/v1/
-        throw new UnsupportedOperationException();
+        if (DTOList == null)
+        {
+            throw new NotFoundException("No objects retreived from database.");
+        }
+
+        if (DTOList.isEmpty())
+        {
+            throw new NotFoundException("Database is empty.");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        List<CountryExDataDTO> dtos = DTOList;
+        try
+        {
+            em.getTransaction().begin();
+            for (CountryExDataDTO i : dtos)
+            {
+                CountryData cd = new CountryData(i.getName(), i.getAlpha2Code(), i.getPopulation(), null, null);
+                em.persist(cd);
+            }
+            em.getTransaction().commit();
+            return "countries added";
+        } catch (Exception ex)
+        {
+            return "Failed doing persist to DB";
+        } finally
+        {
+            em.close();
+        }
     }
 
     /**
      * @author Christian
      */
-    public void getExternalCountryByCode()
+    // vil gerne ændre denne til persisteExCountryByCode
+    public String getExternalCountryByCode(CountryExDataDTO dto) throws NotFoundException
     {
+        if (dto == null)
+        {
+            throw new NotFoundException("No objects passed");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        try
+        {
+            em.getTransaction().begin();
+                CountryData cd = new CountryData(dto.getName(), dto.getAlpha2Code(), dto.getPopulation(), null, null);
+                em.persist(cd);
+            em.getTransaction().commit();
+            return "country added";
+        } catch (Exception ex)
+        {
+            return "Failed doing persist to DB";
+        } finally
+        {
+            em.close();
+        }
         //http://restcountries.eu/rest/v1/alpha?codes=de
-        throw new UnsupportedOperationException();
     }
 
     /**
