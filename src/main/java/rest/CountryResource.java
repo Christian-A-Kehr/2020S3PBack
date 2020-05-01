@@ -10,6 +10,7 @@ import errorhandling.NotFoundException;
 import java.io.IOException;
 import utils.EMF_Creator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
@@ -94,9 +95,12 @@ public class CountryResource
 //            throw NotFoundException
 //        }
 //        else{
+            // laves i Set/List?
+            //Set<CountryExDataDTO> CDTOList = GSON.fromJson(countryData, CountryExDataDTO.class);
+            
+            
             CountryExDataDTO DTO = GSON.fromJson(countryData, CountryExDataDTO.class);
             
-            //CountryInDTO cDTO = FACADE.getLatestInternalCovidEntryForCountryByCode(code);
             
             return GSON.toJson(DTO);
 //        }
@@ -113,7 +117,7 @@ public class CountryResource
     {
         String country = HttpUtils.fetchData("http://restcountries.eu/rest/v1/alpha?codes=" + code);
         CountryExDataDTO dto = GSON.fromJson(country, CountryExDataDTO.class);
-        FACADE.getExternalCountryByCode(dto);
+//        FACADE.persisteExCountry(dto);
     return GSON.toJson(dto);
     }
 

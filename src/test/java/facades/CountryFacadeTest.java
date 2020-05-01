@@ -9,6 +9,7 @@ import dtos.CountryExDataDTO;
 import entities.CountryData;
 import utils.EMF_Creator;
 import entities.RenameMe;
+import errorhandling.NotFoundException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.AfterAll;
@@ -34,8 +35,9 @@ public class CountryFacadeTest
     private static EntityManagerFactory emf;
     private static CountryFacade facade;
 //    
-//    CountryData cd1 = new CountryData("LandOfTheBrave", "50", 100, null, null);
-//    CountryData cd2 = new CountryData("LalaLand", "66", 2, null, null);
+    CountryData cd1 = new CountryData("LandOfTheBrave", "US", 100, null, null);
+    CountryData cd2 = new CountryData("LalaLand", "LL", 2, null, null);
+    CountryExDataDTO DTO1 = new CountryExDataDTO("ZombieLand", "ZL", 4);
 
     public CountryFacadeTest()
     {
@@ -81,9 +83,9 @@ public class CountryFacadeTest
         try
         {
             em.getTransaction().begin();
-            em.createNamedQuery("RenameMe.deleteAllRows").executeUpdate();
-            em.persist(new CountryData("LandOfTheBrave", "US", 100, null, null));
-            em.persist(new CountryData("LalaLand", "LL", 2, null, null));
+            em.createNamedQuery("CountryData.deleteAllRows").executeUpdate();
+            em.persist(cd1);
+            em.persist(cd2);
             em.getTransaction().commit();
         } finally
         {
@@ -105,13 +107,31 @@ public class CountryFacadeTest
         long count = facade.getInternalCountryCount();
         assertEquals(ex, count, "Expects two rows in the database");
     }
-
-//    @Test
-//    public String getExternalCountryByCode(CountryExDataDTO dto)
-//    {
-//        String countryCode = dto.getAlpha2Code();
-//        
-//        assertEquals(ex, count, "Expects two rows in the database");
-//    }
-
+    /**
+     * author Christian
+     * @throws NotFoundException 
+     */
+    @Test
+    public void persisteExCountry() throws NotFoundException
+    {
+        String expt = facade.persisteExCountry(DTO1).getCountryName();
+        String CCode = DTO1.getAlpha2Code();
+        String res = facade.getCountryFromDatabaseByCountrycode(CCode).getCountryName();
+        System.out.println("persisteExCountryTest: expt =" + expt + " res= " + res);
+        assertEquals(expt, res, "Expects two rows in the database");
+    }
+    
+    /**
+     * author Christian
+     * @throws NotFoundException 
+     */
+    @Test
+    public void getCountryFromDatabaseByCountrycode() throws NotFoundException
+    {
+        String expt = cd2.getCountryName();
+        String lookingForCC = cd2.getCountryCode();
+        String res = facade.getCountryFromDatabaseByCountrycode(lookingForCC).getCountryName();
+        System.out.println("getCountryFromDatabaseByCountrycode: expt =" + expt + " res= " + res);
+        assertEquals(expt, res, "Expects LalaLand");
+    }
 }
