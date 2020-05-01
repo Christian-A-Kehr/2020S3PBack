@@ -4,8 +4,10 @@ import facades.CountryFacade;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dtos.CountryBasicInDTO;
+import dtos.CountryExDataDTO;
 import dtos.CountryInDTO;
 import errorhandling.NotFoundException;
+import java.io.IOException;
 import utils.EMF_Creator;
 import java.util.List;
 import java.util.logging.Level;
@@ -16,6 +18,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import utils.HttpUtils;
 
 @Path("country")
 public class CountryResource
@@ -78,4 +81,42 @@ public class CountryResource
         }
     }
     
-}
+    @GET
+    @Path("/filldatabase")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String fillDbWithCountry() throws IOException
+    {
+        // how to get mulitiple list obj and persiste to DB
+//        try
+//        {
+            String countryData = HttpUtils.fetchData("http://restcountries.eu/rest/v1/");
+//        if (countryData == null){
+//            throw NotFoundException
+//        }
+//        else{
+            CountryExDataDTO DTO = GSON.fromJson(countryData, CountryExDataDTO.class);
+            
+            //CountryInDTO cDTO = FACADE.getLatestInternalCovidEntryForCountryByCode(code);
+            
+            return GSON.toJson(DTO);
+//        }
+        }
+//        catch (NotFoundException ex)
+//        {
+//            return "{\"msg\":" + ex.getMessage() + "}";
+//        }
+    
+    @GET
+    @Path("/ex/{code}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getCountry(@PathParam("code") String code) throws IOException, NotFoundException
+    {
+        String country = HttpUtils.fetchData("http://restcountries.eu/rest/v1/alpha?codes=" + code);
+        CountryExDataDTO dto = GSON.fromJson(country, CountryExDataDTO.class);
+        FACADE.getExternalCountryByCode(dto);
+    return GSON.toJson(dto);
+    }
+
+    }
+    
+
