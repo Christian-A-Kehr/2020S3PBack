@@ -259,7 +259,7 @@ public class CountryFacade
         //https://api.covid19api.com/total/dayone/country/germany
         throw new UnsupportedOperationException();
     }
-
+    // Redundent! use in getLatestInternalCovidEntryForCountryByCode
     public CountryData getCountryFromDatabaseByCountrycode(String countrycode) throws NotFoundException
     {
         EntityManager em = emf.createEntityManager();
