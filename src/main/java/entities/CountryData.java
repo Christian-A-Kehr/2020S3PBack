@@ -37,7 +37,7 @@ public class CountryData implements Serializable
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private long id;
 
     private String countryName;
     @Column(nullable = false, unique = true)
@@ -58,10 +58,9 @@ public class CountryData implements Serializable
     }
 
     public CountryData(
-            Long id, String countryName, String countryCode, long population, 
+            String countryName, String countryCode, long population, 
             Set<User> userTrackers, Set<CovidData> covidEntries)
     {
-        this.id = id;
         this.countryName = countryName;
         this.countryCode = countryCode;
         this.population = population;
@@ -69,7 +68,7 @@ public class CountryData implements Serializable
         this.covidEntries = covidEntries;
     }
 
-    public Long getId()
+    public long getId()
     {
         return id;
     }

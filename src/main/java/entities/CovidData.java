@@ -34,7 +34,7 @@ public class CovidData implements Serializable
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private long id;
 
     @Column(nullable = false, unique = true)
     @Temporal(javax.persistence.TemporalType.DATE)
@@ -50,11 +50,10 @@ public class CovidData implements Serializable
     }
 
     public CovidData(
-            Long id, Date date, CountryData country, long newConfirmedInfected,
+            Date date, CountryData country, long newConfirmedInfected,
             long totalConfirmedInfected, long newRecovered, long totalRecovered,
             long newDeaths, long totalDeaths)
     {
-        this.id = id;
         this.date = date;
         this.country = country;
         this.newConfirmedInfected = newConfirmedInfected;
@@ -65,7 +64,7 @@ public class CovidData implements Serializable
         this.totalDeaths = totalDeaths;
     }
 
-    public Long getId()
+    public long getId()
     {
         return id;
     }

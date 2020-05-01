@@ -5,40 +5,43 @@
  */
 package dtos;
 
+import java.util.Set;
+
 /**
  *
  * @author Christian
  */
 public class CountryExDataDTO
 {
-    private String countryName, countryCode;
+    //alpha2Code = country code
+    private String name, alpha2Code;
     private long population;
 
-    public CountryExDataDTO(String countryName, String countryCode, long population)
+    public CountryExDataDTO(String name, String alpha2Code, long population)
     {
-        this.countryName = countryName;
-        this.countryCode = countryCode;
+        this.name = name;
+        this.alpha2Code = alpha2Code;
         this.population = population;
     }
 
-    public String getCountryName()
+    public String getName()
     {
-        return countryName;
+        return name;
     }
 
-    public void setCountryName(String countryName)
+    public void setName(String name)
     {
-        this.countryName = countryName;
+        this.name = name;
     }
 
-    public String getCountryCode()
+    public String getAlpha2Code()
     {
-        return countryCode;
+        return alpha2Code;
     }
 
-    public void setCountryCode(String countryCode)
+    public void setAlpha2Code(String alpha2Code)
     {
-        this.countryCode = countryCode;
+        this.alpha2Code = alpha2Code;
     }
 
     public long getPopulation()
@@ -51,10 +54,12 @@ public class CountryExDataDTO
         this.population = population;
     }
 
+    
+    
     @Override
     public String toString()
     {
-        return "CountryExDataDTO{" + "countryName=" + countryName + ", countryCode=" + countryCode + ", population=" + population + '}';
+        return "CountryExDataDTO{" + "countryName=" + name + ", countryCode=" + alpha2Code + ", population=" + population + '}';
     }
     
 }
