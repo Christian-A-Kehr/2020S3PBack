@@ -221,26 +221,29 @@ public class CountryFacade
 
     /**
      * @author Christian
+     * @param dto
+     * @return
+     * @throws errorhandling.NotFoundException
      */
-    // vil gerne ændre denne til persisteExCountryByCode
-    public String getExternalCountryByCode(CountryExDataDTO dto) throws NotFoundException
+    // tidligere getExternalCountryByCode
+    public CountryData persisteExCountry(CountryExDataDTO dto) throws NotFoundException
     {
         if (dto == null)
         {
             throw new NotFoundException("No objects passed");
         }
-
+        CountryData cd;
         EntityManager em = emf.createEntityManager();
         try
         {
             em.getTransaction().begin();
-                CountryData cd = new CountryData(dto.getName(), dto.getAlpha2Code(), dto.getPopulation(), null, null);
-                em.persist(cd);
+            cd = new CountryData(dto.getName(), dto.getAlpha2Code(), dto.getPopulation(), null, null);
+            em.persist(cd);
             em.getTransaction().commit();
-            return "country added";
+            return cd;
         } catch (Exception ex)
         {
-            return "Failed doing persist to DB";
+            throw new NotFoundException("Failed to persist") ;
         } finally
         {
             em.close();
@@ -256,4 +259,22 @@ public class CountryFacade
         //https://api.covid19api.com/total/dayone/country/germany
         throw new UnsupportedOperationException();
     }
+
+    public CountryData getCountryFromDatabaseByCountrycode(String countrycode) throws NotFoundException
+    {
+        EntityManager em = emf.createEntityManager();
+        if (countrycode == null)
+        {
+            throw new NotFoundException("No objects passed");
+        }
+        try
+        {
+            TypedQuery<CountryData> query = em.createQuery("SELECT e From CountryData e where e.countryCode = :code", CountryData.class).setParameter("code", countrycode);
+            return query.getSingleResult(); 
+        } finally
+        {
+            em.close();
+        }
+    }
+
 }
