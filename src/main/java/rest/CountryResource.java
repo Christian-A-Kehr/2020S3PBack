@@ -3,6 +3,7 @@ package rest;
 import facades.CountryFacade;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dtos.CountriesDTO;
 import dtos.CountryBasicInDTO;
 import dtos.CountryExDataDTO;
 import dtos.CountryInDTO;
@@ -96,13 +97,9 @@ public class CountryResource
 //        }
 //        else{
             // laves i Set/List?
-            //Set<CountryExDataDTO> CDTOList = GSON.fromJson(countryData, CountryExDataDTO.class);
-            
-            
-            CountryExDataDTO DTO = GSON.fromJson(countryData, CountryExDataDTO.class);
-            
-            
-            return GSON.toJson(DTO);
+            CountriesDTO CDTOList = GSON.fromJson(countryData, CountriesDTO.class);
+          
+            return GSON.toJson(CDTOList);
 //        }
         }
 //        catch (NotFoundException ex)
@@ -120,13 +117,15 @@ public class CountryResource
 //        FACADE.persisteExCountry(dto);
     return GSON.toJson(dto);
     }
-      private static CountryResource rest;
-    public static void main(String[] args) throws IOException, NotFoundException
-    {
-        System.out.println(rest.getCountry("de"));
-       
-               
-    }
+    
+    // for better stacktrace testning (remove later on)
+//      private static CountryResource rest;
+//    public static void main(String[] args) throws IOException, NotFoundException
+//    {
+//        System.out.println(rest.getCountry("de"));
+//       
+//               
+//    }
     
     }
     
