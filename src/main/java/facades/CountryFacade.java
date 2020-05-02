@@ -5,12 +5,14 @@ import dtos.CountryExDataDTO;
 import dtos.CountryInDTO;
 import entities.CountryData;
 import entities.CovidData;
+import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -186,7 +188,7 @@ public class CountryFacade
      * @param DTOList
      * @return
      */
-    public String getAllExternalCountries(List<CountryExDataDTO> DTOList) throws NotFoundException
+    public void persistAllExternalCountries(List<CountryExDataDTO> DTOList) throws NotFoundException
     {
         if (DTOList == null)
         {
@@ -203,16 +205,12 @@ public class CountryFacade
         try
         {
             em.getTransaction().begin();
-            for (CountryExDataDTO i : dtos)
+            for (CountryExDataDTO o : dtos)
             {
-                CountryData cd = new CountryData(i.getName(), i.getAlpha2Code(), i.getPopulation(), null, null);
+                CountryData cd = new CountryData(o.getName(), o.getAlpha2Code(), o.getPopulation(), null, null);
                 em.persist(cd);
             }
             em.getTransaction().commit();
-            return "countries added";
-        } catch (Exception ex)
-        {
-            return "Failed doing persist to DB";
         } finally
         {
             em.close();
@@ -225,13 +223,17 @@ public class CountryFacade
      * @return
      * @throws errorhandling.NotFoundException
      */
-    // tidligere getExternalCountryByCode
-    public CountryData persisteExCountry(CountryExDataDTO dto) throws NotFoundException
+    public CountryData persisteExCountry(CountryExDataDTO dto) throws NotFoundException, DatabaseException
     {
         if (dto == null)
         {
             throw new NotFoundException("No objects passed");
         }
+//        TBD
+//        if (
+//                getCountryFromDatabaseByCountrycode(dto.getAlpha2Code())
+//                {
+//                }
         CountryData cd;
         EntityManager em = emf.createEntityManager();
         try
@@ -241,9 +243,9 @@ public class CountryFacade
             em.persist(cd);
             em.getTransaction().commit();
             return cd;
-        } catch (Exception ex)
+        } catch (EntityExistsException ex)
         {
-            throw new NotFoundException("Failed to persist") ;
+            throw new DatabaseException("An identical object entry already exists in the database.");
         } finally
         {
             em.close();
@@ -259,13 +261,13 @@ public class CountryFacade
         //https://api.covid19api.com/total/dayone/country/germany
         throw new UnsupportedOperationException();
     }
-    
-    
+
     /**
      * author Christian
+     *
      * @param countrycode
      * @return
-     * @throws NotFoundException 
+     * @throws NotFoundException
      */
     // Redundent! use in getLatestInternalCovidEntryForCountryByCode
     public CountryData getCountryFromDatabaseByCountrycode(String countrycode) throws NotFoundException
@@ -278,7 +280,15 @@ public class CountryFacade
         try
         {
             TypedQuery<CountryData> query = em.createQuery("SELECT e From CountryData e where e.countryCode = :code", CountryData.class).setParameter("code", countrycode);
-            return query.getSingleResult(); 
+            CountryData result = query.getSingleResult();
+            if (result == null)
+            {
+                throw new NotFoundException("no data match");
+            } else
+            {
+                return query.getSingleResult();
+            }
+
         } finally
         {
             em.close();
