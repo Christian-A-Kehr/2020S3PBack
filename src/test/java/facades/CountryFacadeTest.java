@@ -37,7 +37,8 @@ public class CountryFacadeTest
 //    
     CountryData cd1 = new CountryData("LandOfTheBrave", "US", 100, null, null);
     CountryData cd2 = new CountryData("LalaLand", "LL", 2, null, null);
-    CountryExDataDTO DTO1 = new CountryExDataDTO("ZombieLand", "ZL", 4);
+    CountryData cd3 = new CountryData("ZombieLand", "ZL", 4, null, null);
+    CountryExDataDTO DTO1 = new CountryExDataDTO(cd3);
 
     public CountryFacadeTest()
     {

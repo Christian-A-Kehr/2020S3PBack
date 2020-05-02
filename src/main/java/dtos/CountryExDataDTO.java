@@ -5,6 +5,7 @@
  */
 package dtos;
 
+import entities.CountryData;
 import java.util.Set;
 
 /**
@@ -17,13 +18,15 @@ public class CountryExDataDTO
     private String name, alpha2Code;
     private long population;
 
-    public CountryExDataDTO(String name, String alpha2Code, long population)
-    {
-        this.name = name;
-        this.alpha2Code = alpha2Code;
-        this.population = population;
-    }
+   
 
+    public CountryExDataDTO(CountryData cd)
+    {
+        this.name = cd.getCountryName();
+        this.alpha2Code = cd.getCountryCode();
+        this.population = cd.getPopulation();
+    }
+    
     public String getName()
     {
         return name;

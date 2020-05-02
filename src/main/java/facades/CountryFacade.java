@@ -259,6 +259,14 @@ public class CountryFacade
         //https://api.covid19api.com/total/dayone/country/germany
         throw new UnsupportedOperationException();
     }
+    
+    
+    /**
+     * author Christian
+     * @param countrycode
+     * @return
+     * @throws NotFoundException 
+     */
     // Redundent! use in getLatestInternalCovidEntryForCountryByCode
     public CountryData getCountryFromDatabaseByCountrycode(String countrycode) throws NotFoundException
     {
