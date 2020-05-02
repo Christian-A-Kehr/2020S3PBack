@@ -4,20 +4,15 @@ import facades.CountryFacade;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import dtos.CountriesDTO;
 import dtos.CountryBasicInDTO;
 import dtos.CountryExDataDTO;
 import dtos.CountryInDTO;
-import entities.CountryData;
+import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import utils.EMF_Creator;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -39,12 +34,6 @@ public class CountryResource
     private static final CountryFacade FACADE = CountryFacade.getCountryFacade(EMF);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-//    @GET
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public String demo()
-//    {
-//        return "{\"msg\":\"Hello World\"}";
-//    }
     @GET
     @Path("count")
     @Produces(MediaType.APPLICATION_JSON)
@@ -54,26 +43,25 @@ public class CountryResource
         return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
     }
 
-//    @GET
-//    @Path("in")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public String getAllInBasicCountries()
-//    {
-//        List<CountryBasicInDTO> cBasicDTOList;
-//        try
-//        {
-//            cBasicDTOList = FACADE.getAllInternalCountries();
-//            return GSON.toJson(cBasicDTOList);
-//        } catch (NotFoundException ex)
-//        {
-//            return "{\"msg\":" + ex.getMessage() + "}";
-//        }
-//    }
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAllInternalBasicCountries()
+    {
+        List<CountryBasicInDTO> cBasicDTOList;
+        try
+        {
+            cBasicDTOList = FACADE.getAllInternalCountries();
+            return GSON.toJson(cBasicDTOList);
+        } catch (NotFoundException ex)
+        {
+            return "{\"msg\":\"" + ex.getMessage() + "\"}";
+        }
+    }
 
     @GET
     @Path("/{code}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getLatestByCountryCode(@PathParam("code") String code)
+    public String getNewestCovidEntryByCountryCode(@PathParam("code") String code)
     {
         try
         {
@@ -81,60 +69,64 @@ public class CountryResource
             return GSON.toJson(cDTO);
         } catch (NotFoundException ex)
         {
-            return "{\"msg\":" + ex.getMessage() + "}";
+            return "{\"msg\":\"" + ex.getMessage() + "\"}";
         }
     }
 
     @GET
-    @Path("/filldatabase")
+    @Path("/fetch")
     @Produces(MediaType.APPLICATION_JSON)
-    public String fillDbWithCountry() throws IOException
+    public String fetchAllCountries() throws IOException
     {
         Gson gson = new Gson();
         String countryData = HttpUtils.fetchData("http://restcountries.eu/rest/v1/");
 
-        List<CountryExDataDTO> countries = gson.fromJson(countryData, new TypeToken<List<CountryExDataDTO>>()
+        try
         {
-        }.getType());
+            if (countryData == null)
+            {
+                return "{\"msg\":\"No data from http://restcountries.eu/rest/v1/\"}";
+            }
+            List<CountryExDataDTO> countries = gson.fromJson(countryData, new TypeToken<List<CountryExDataDTO>>()
+            {
+            }.getType());
+            FACADE.persistAllExternalCountries(countries);
+            return gson.toJson(countries);
+        } catch (NotFoundException ex)
+        {
+            return "{\"msg\":\"" + ex.getMessage() + "\"}";
+        }
 
-        return gson.toJson(countries);
-        // how to get mulitiple list obj and persiste to DB
-//        try
-//        {
-//        if (countryData == null){
-//            throw NotFoundException
-//        }
-//        else{
-        // laves i Set/List?
-//        CountriesDTO CDTOList = gson.fromJson(countryData, CountriesDTO.class);
-//        return gson.toJson(CDTOList);
-//        return countryData;
-//        }
     }
-//        catch (NotFoundException ex)
-//        {
-//            return "{\"msg\":" + ex.getMessage() + "}";
-//        }
 
     @GET
-    @Path("/ex")
+    @Path("/fetch/{code}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getCountry() throws IOException 
+    public String fetchCountryByCode(@PathParam("code") String code)
     {
         Gson gson = new Gson();
-        String country = HttpUtils.fetchData("https://restcountries.eu/rest/v1/alpha?codes=de");
-        CountryExDataDTO dto = gson.fromJson(country, CountryExDataDTO.class);
-//        FACADE.persisteExCountry(dto);
-        String res = gson.toJson(dto);
-        return res;
+        try
+        {
+            String country = HttpUtils.fetchData("https://restcountries.eu/rest/v1/alpha?codes=" + code);
+            List<CountryExDataDTO> countryList = gson.fromJson(country, new TypeToken<List<CountryExDataDTO>>()
+            {
+            }.getType());
+
+            String res = GSON.toJson(countryList.get(0));
+            FACADE.persisteExCountry(countryList.get(0));
+            return res;
+        } catch (NotFoundException | IOException | DatabaseException ex)
+        {
+            return "{\"msg\":\"" + ex.getMessage() + "\"}";
+        }
+
     }
 
     // for better stacktrace testning (remove later on)
-//      private static CountryResource rest;
-//    public static void main(String[] args) throws IOException, NotFoundException
-//    {
-//        System.out.println(rest.getCountry("de"));
-//       
-//               
-//    }
+    public static void main(String[] args) throws IOException, NotFoundException
+    {
+        CountryResource rest = new CountryResource();
+//        System.out.println(rest.fetchCountryByCode("se"));
+        rest.fetchAllCountries();
+    }
 }
