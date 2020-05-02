@@ -9,7 +9,10 @@ import dtos.CountryExDataDTO;
 import entities.CountryData;
 import utils.EMF_Creator;
 import entities.RenameMe;
+import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.AfterAll;
@@ -34,11 +37,9 @@ public class CountryFacadeTest
 
     private static EntityManagerFactory emf;
     private static CountryFacade facade;
-//    
     CountryData cd1 = new CountryData("LandOfTheBrave", "US", 100, null, null);
     CountryData cd2 = new CountryData("LalaLand", "LL", 2, null, null);
-    CountryData cd3 = new CountryData("ZombieLand", "ZL", 4, null, null);
-    CountryExDataDTO DTO1 = new CountryExDataDTO(cd3);
+    CountryExDataDTO DTO1 = new CountryExDataDTO("ZombieLand", "ZL", 4);
 
     public CountryFacadeTest()
     {
@@ -115,11 +116,17 @@ public class CountryFacadeTest
     @Test
     public void persisteExCountry() throws NotFoundException
     {
-        String expt = facade.persisteExCountry(DTO1).getCountryName();
-        String CCode = DTO1.getAlpha2Code();
-        String res = facade.getCountryFromDatabaseByCountrycode(CCode).getCountryName();
-        System.out.println("persisteExCountryTest: expt =" + expt + " res= " + res);
-        assertEquals(expt, res, "Expects two rows in the database");
+        try
+        {
+            String expt = facade.persisteExCountry(DTO1).getCountryName();
+            String CCode = DTO1.getAlpha2Code();
+            String res = facade.getCountryFromDatabaseByCountrycode(CCode).getCountryName();
+            System.out.println("persisteExCountryTest: expt =" + expt + " res= " + res);
+            assertEquals(expt, res, "Expects two rows in the database");
+        } catch (DatabaseException ex)
+        {
+            Logger.getLogger(CountryFacadeTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**

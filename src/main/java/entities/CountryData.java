@@ -58,7 +58,7 @@ public class CountryData implements Serializable
     }
 
     public CountryData(
-            String countryName, String countryCode, long population, 
+            String countryName, String countryCode, long population,
             Set<User> userTrackers, Set<CovidData> covidEntries)
     {
         this.countryName = countryName;
@@ -66,6 +66,20 @@ public class CountryData implements Serializable
         this.population = population;
         this.userTrackers = userTrackers;
         this.covidEntries = covidEntries;
+    }
+    
+    /**
+     * Used to get external countries with no id.
+     * 
+     * @param countryName
+     * @param countryCode
+     * @param population 
+     */
+    public CountryData(String countryName, String countryCode, long population)
+    {
+        this.countryName = countryName;
+        this.countryCode = countryCode;
+        this.population = population;
     }
 
     public long getId()
