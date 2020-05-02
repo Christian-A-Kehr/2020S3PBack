@@ -115,12 +115,19 @@ public class CountryResource
     @Produces(MediaType.APPLICATION_JSON)
     public String getCountry(@PathParam("code") String code) throws IOException, NotFoundException
     {
-        String country = HttpUtils.fetchData("http://restcountries.eu/rest/v1/alpha?codes=" + code);
+        String country = HttpUtils.fetchData("http://restcountries.eu/rest/v1/alpha?codes=de");
         CountryExDataDTO dto = GSON.fromJson(country, CountryExDataDTO.class);
 //        FACADE.persisteExCountry(dto);
     return GSON.toJson(dto);
     }
-
+      private static CountryResource rest;
+    public static void main(String[] args) throws IOException, NotFoundException
+    {
+        System.out.println(rest.getCountry("de"));
+       
+               
+    }
+    
     }
     
 
