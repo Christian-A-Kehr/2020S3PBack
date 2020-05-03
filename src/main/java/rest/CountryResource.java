@@ -136,7 +136,7 @@ public class CountryResource
             }.getType());
 
             CountryExDTO countryRes = countryList.get(0);
-            FACADE.persisteExternalCountry(countryRes);
+            FACADE.persistExternalCountry(countryRes);
             return GSON.toJson(countryRes);
         }
         catch (NotFoundException | DatabaseException ex)
@@ -187,6 +187,6 @@ public class CountryResource
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));
 //        rest.fetchAllCountries();
-        rest.fetchCovidDataForCountryByCode("de");
+        rest.fetchCovidDataForCountryByCode("us");
     }
 }
