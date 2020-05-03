@@ -3,15 +3,20 @@ package facades;
 import dtos.CountryBasicInDTO;
 import dtos.CountryExDTO;
 import dtos.CountryInDTO;
+import dtos.CovidExDTO;
 import entities.CountryData;
 import entities.CovidData;
 import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.sql.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -36,11 +41,23 @@ public class CountryFacade
     /**
      * This facade contains the following methods in order:
      *
-     * getInternalCountryCount getAllInternalCountries
-     * getLatestInternalCovidEntryForCountryByCode
+     * getInternalCountryCount
+     *
+     * getInternalCountryByCode
+     *
+     * getAllInternalCountries
+     *
+     * getNewestInternalCovidEntryForCountryByCode
+     *
      * getAllInternalCovidEntriesForCountryByCode
-     * getInternalCovidEntryForCountryByCodeByDate getAllExternalCountries
-     * getExternalCountryByCode getAllExternalCovidEntriesForCountryByName
+     *
+     * getInternalCovidEntryForCountryByCodeByDate
+     *
+     * persistAllExternalCountries
+     *
+     * persisteExternalCountry
+     *
+     * persistAllExternalCovidEntriesForCountryByCode
      */
     /**
      *
@@ -65,8 +82,9 @@ public class CountryFacade
     /**
      * Counts the amount of entries existing in the database.
      *
+     * author Brandstrup
+     *
      * @return The amount of existing entries in the database.
-     * @author Brandstrup
      */
     public long getInternalCountryCount()
     {
@@ -75,18 +93,57 @@ public class CountryFacade
         {
             long countryCount = (long) em.createQuery("SELECT COUNT(o) FROM CountryData o").getSingleResult();
             return countryCount;
-        } finally
+        }
+        finally
         {
             em.close();
         }
+    }
 
+    /**
+     * Retrieves an entry from the database as a DTO object.
+     *
+     * author Christian
+     *
+     * @param code
+     * @return
+     * @throws NotFoundException
+     */
+    // Redundent! use in getNewestInternalCovidEntryForCountryByCode
+    public CountryData getInternalCountryByCode(String code) throws NotFoundException
+    {
+        EntityManager em = emf.createEntityManager();
+        if (code == null)
+        {
+            throw new NotFoundException("No objects passed");
+        }
+        try
+        {
+            CountryData country;
+            TypedQuery<CountryData> query = em.createQuery("SELECT o FROM CountryData o "
+                    + "WHERE o.countryCode = :code", CountryData.class)
+                    .setParameter("code", code);
+            country = query.getSingleResult();
+
+            if (country == null)
+            {
+                throw new NotFoundException("No object matching provided id exists in database.");
+            }
+
+            return country;
+        }
+        finally
+        {
+            em.close();
+        }
     }
 
     /**
      * Retrieves all entries from the database as DTO objects.
      *
+     * author Brandstrup
+     *
      * @return a List of DTO objects.
-     * @author Brandstrup
      */
     public List<CountryBasicInDTO> getAllInternalCountries() throws NotFoundException
     {
@@ -113,7 +170,8 @@ public class CountryFacade
             });
 
             return countryBasicDTOList;
-        } finally
+        }
+        finally
         {
             em.close();
         }
@@ -121,30 +179,31 @@ public class CountryFacade
 
     /**
      *
+     * author Brandstrup
+     *
      * @param code
      * @return
      * @throws NotFoundException
-     * @author Brandstrup
      */
-    public CountryInDTO getLatestInternalCovidEntryForCountryByCode(String code) throws NotFoundException
+    public CountryInDTO getNewestInternalCovidEntryForCountryByCode(String code) throws NotFoundException
     {
         EntityManager em = getEntityManager();
         try
         {
-            CountryData cou;
+            CountryData country;
             TypedQuery<CountryData> query = em.createQuery("SELECT cou FROM Country cou "
                     + "WHERE cou.countrycode = :code", CountryData.class)
                     .setParameter("code", code);
-            cou = query.getSingleResult();
+            country = query.getSingleResult();
 
-            if (cou == null)
+            if (country == null)
             {
                 throw new NotFoundException("No object matching provided id exists in database.");
             }
 
-            if (!(cou.getCovidEntries().isEmpty()))
+            if (!(country.getCovidEntries().isEmpty()))
             {
-                HashSet<CovidData> covidEntries = new HashSet<CovidData>(cou.getCovidEntries());
+                HashSet<CovidData> covidEntries = new HashSet<CovidData>(country.getCovidEntries());
                 CovidData latestEntry = Collections.max(covidEntries, (CovidData o1, CovidData o2) ->
                 {
                     return o1.getDate().compareTo(o2.getDate());
@@ -152,23 +211,26 @@ public class CountryFacade
                 long newestCovidId = latestEntry.getId();
                 // previous 6 lines really need testing!
 
-                CovidData cov = em.find(CovidData.class, newestCovidId);
+                CovidData covid = em.find(CovidData.class, newestCovidId);
 
-                return new CountryInDTO(cou, cov);
+                return new CountryInDTO(country, covid);
             }
 
-            return new CountryInDTO(cou);
-        } catch (IllegalArgumentException ex)
+            return new CountryInDTO(country);
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-        } finally
+        }
+        finally
         {
             em.close();
         }
     }
 
     /**
-     * @author Brandstrup
+     * author Brandstrup
+     *
      */
     public void getAllInternalCovidEntriesForCountryByCode()
     {
@@ -176,7 +238,8 @@ public class CountryFacade
     }
 
     /**
-     * @author Brandstrup
+     * author Brandstrup
+     *
      */
     public void getInternalCovidEntryForCountryByCodeByDate()
     {
@@ -184,7 +247,8 @@ public class CountryFacade
     }
 
     /**
-     * @author Christian
+     * author Christian
+     *
      * @param DTOList
      * @return
      */
@@ -192,38 +256,39 @@ public class CountryFacade
     {
         if (DTOList == null)
         {
-            throw new NotFoundException("No objects retreived from database.");
+            throw new NotFoundException("No objects retreived from http://restcountries.eu/rest/v1.");
         }
 
         if (DTOList.isEmpty())
         {
-            throw new NotFoundException("Database is empty.");
+            throw new NotFoundException("No data was fetched.");
         }
 
         EntityManager em = emf.createEntityManager();
-        List<CountryExDTO> dtos = DTOList;
         try
         {
             em.getTransaction().begin();
-            for (CountryExDTO o : dtos)
+            for (CountryExDTO o : DTOList)
             {
                 CountryData cd = new CountryData(o.getName(), o.getAlpha2Code(), o.getPopulation(), null, null);
                 em.persist(cd);
             }
             em.getTransaction().commit();
-        } finally
+        }
+        finally
         {
             em.close();
         }
     }
 
     /**
-     * @author Christian
+     * author Christian
+     *
      * @param dto
      * @return
-     * @throws errorhandling.NotFoundException
+     * @throws NotFoundException
      */
-    public CountryData persisteExCountry(CountryExDTO dto) throws NotFoundException, DatabaseException
+    public CountryData persisteExternalCountry(CountryExDTO dto) throws NotFoundException, DatabaseException
     {
         if (dto == null)
         {
@@ -231,7 +296,7 @@ public class CountryFacade
         }
 //        TBD
 //        if (
-//                getCountryFromDatabaseByCountrycode(dto.getAlpha2Code())
+//                getInternalCountryByCode(dto.getAlpha2Code())
 //                {
 //                }
         CountryData cd;
@@ -243,10 +308,12 @@ public class CountryFacade
             em.persist(cd);
             em.getTransaction().commit();
             return cd;
-        } catch (EntityExistsException ex)
+        }
+        catch (EntityExistsException ex)
         {
             throw new DatabaseException("An identical object entry already exists in the database.");
-        } finally
+        }
+        finally
         {
             em.close();
         }
@@ -254,45 +321,54 @@ public class CountryFacade
     }
 
     /**
-     * @author Brandstrup
-     */
-    public void getAllExternalCovidEntriesForCountryByCode()
-    {
-        //https://api.covid19api.com/total/dayone/country/de
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * author Christian
+     * author Brandstrup
      *
-     * @param countrycode
-     * @return
+     * @param DTOList
+     * @param code
      * @throws NotFoundException
      */
-    // Redundent! use in getLatestInternalCovidEntryForCountryByCode
-    public CountryData getCountryFromDatabaseByCountrycode(String countrycode) throws NotFoundException
+    public void persistAllExternalCovidEntriesForCountryByCode(List<CovidExDTO> DTOList, String code) throws NotFoundException
     {
-        EntityManager em = emf.createEntityManager();
-        if (countrycode == null)
+        if (DTOList == null)
         {
-            throw new NotFoundException("No objects passed");
+            throw new NotFoundException("No objects retreived from https://api.covid19api.com/total/dayone/country/" + code + ".");
         }
+
+        if (DTOList.isEmpty())
+        {
+            throw new NotFoundException("No data was fetched.");
+        }
+
+        EntityManager em = emf.createEntityManager();
         try
         {
-            TypedQuery<CountryData> query = em.createQuery("SELECT e From CountryData e where e.countryCode = :code", CountryData.class).setParameter("code", countrycode);
-            CountryData result = query.getSingleResult();
-            if (result == null)
+            em.getTransaction().begin();
+            for (CovidExDTO o : DTOList)
             {
-                throw new NotFoundException("no data match");
-            } else
-            {
-                return query.getSingleResult();
-            }
 
-        } finally
+                DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'", Locale.ENGLISH);
+                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
+                LocalDate localDate = LocalDate.parse("2018-04-10T04:00:00.000Z", inputFormatter);
+                
+                String formattedDate = outputFormatter.format(localDate);
+                System.out.println(formattedDate);
+                
+                Date date = Date.valueOf(localDate);
+                long newConfirmed = 0;
+                long newRecovered = 0;
+                long newDeaths = 0;
+
+                CovidData cd = new CovidData(date, null, newConfirmed, o.getConfirmed(),
+                        newRecovered, o.getRecovered(), newDeaths, o.getDeaths());
+                em.persist(cd);
+            }
+            em.getTransaction().commit();
+        }
+        finally
         {
             em.close();
         }
+        //https://api.covid19api.com/total/dayone/country/de
     }
 
 }
