@@ -56,7 +56,7 @@ public class CountryFacade
      *
      * persistAllExternalCountries
      *
-     * persisteExternalCountry
+     * persistExternalCountry
      *
      * persistAllExternalCovidEntriesForCountryByCode
      */
@@ -110,14 +110,9 @@ public class CountryFacade
      * @return
      * @throws NotFoundException
      */
-    // Redundent! use in getNewestInternalCovidEntryForCountryByCode
     public CountryData getInternalCountryByCode(String code) throws NotFoundException
     {
         EntityManager em = emf.createEntityManager();
-        if (code == null)
-        {
-            throw new NotFoundException("No objects passed");
-        }
         try
         {
             CountryData country;
@@ -128,7 +123,7 @@ public class CountryFacade
 
             if (country == null)
             {
-                throw new NotFoundException("No object matching provided id exists in database.");
+                throw new NotFoundException("No object matching provided country code exists in database.");
             }
 
             return country;
@@ -157,7 +152,7 @@ public class CountryFacade
 
             if (query.getResultList() == null)
             {
-                throw new NotFoundException("No objects retreived from database.");
+                throw new NotFoundException("No objects retrieved from database.");
             }
 
             if (query.getResultList().isEmpty())
@@ -257,7 +252,7 @@ public class CountryFacade
     {
         if (DTOList == null)
         {
-            throw new NotFoundException("No objects retreived from http://restcountries.eu/rest/v1.");
+            throw new NotFoundException("No objects retrieved from http://restcountries.eu/rest/v1.");
         }
 
         if (DTOList.isEmpty())
@@ -289,7 +284,7 @@ public class CountryFacade
      * @return
      * @throws NotFoundException
      */
-    public CountryData persisteExternalCountry(CountryExDTO dto) throws NotFoundException, DatabaseException
+    public CountryData persistExternalCountry(CountryExDTO dto) throws NotFoundException, DatabaseException
     {
         if (dto == null)
         {
@@ -332,7 +327,7 @@ public class CountryFacade
     {
         if (DTOList == null)
         {
-            throw new NotFoundException("No objects retreived from https://api.covid19api.com/total/dayone/country/" + code + ".");
+            throw new NotFoundException("No objects retrieved from https://api.covid19api.com/total/dayone/country/" + code + ".");
         }
 
         if (DTOList.isEmpty())
@@ -344,9 +339,22 @@ public class CountryFacade
         try
         {
             em.getTransaction().begin();
+            
+            CountryData country;
+            TypedQuery<CountryData> query = em.createQuery("SELECT o FROM CountryData o "
+                    + "WHERE o.countryCode = :code", CountryData.class)
+                    .setParameter("code", code);
+            country = query.getSingleResult();
+
+            if (country == null)
+            {
+                throw new NotFoundException("No object matching provided country code exists in database.");
+            }
+            
             for (CovidExDTO o : DTOList)
             {
 
+                //Missing checks for duplicates. Quite urgent if we need to call updates
                 DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
                 DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
                 LocalDate localDate = LocalDate.parse(o.getDate(), inputFormatter);
@@ -360,10 +368,12 @@ public class CountryFacade
                 long newRecovered = 0;
                 long newDeaths = 0;
 
-                CovidData cd = new CovidData(date, null, newConfirmed, o.getConfirmed(),
+                CovidData covid = new CovidData(date, null, newConfirmed, o.getConfirmed(),
                         newRecovered, o.getRecovered(), newDeaths, o.getDeaths());
-                em.persist(cd);
+                country.addCovidEntry(covid);
+                em.persist(covid);
             }
+            em.merge(country);
             em.getTransaction().commit();
         }
         finally
