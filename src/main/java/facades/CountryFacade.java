@@ -9,11 +9,12 @@ import entities.CovidData;
 import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.sql.Date;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -353,7 +354,8 @@ public class CountryFacade
                 String formattedDate = outputFormatter.format(localDate);
                 System.out.println(formattedDate);
                 
-                Date date = Date.valueOf(localDate);
+                Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                //.plusSeconds(86400)
                 long newConfirmed = 0;
                 long newRecovered = 0;
                 long newDeaths = 0;
