@@ -36,7 +36,7 @@ public class CountryResource
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     @GET
-    @Path("count")
+    @Path("/count")
     @Produces(MediaType.APPLICATION_JSON)
     public String getCountryCount()
     {
@@ -63,7 +63,31 @@ public class CountryResource
     @GET
     @Path("/{code}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getNewestCovidEntryByCountryCode(@PathParam("code") String code)
+    public String getAllCovidEntriesForCountryByCode(@PathParam("code") String code)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @GET
+    @Path("/new/{code}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getNewestCovidEntryForCountryByCode(@PathParam("code") String code)
+    {
+        try
+        {
+            CountryInDTO covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
+            return GSON.toJson(covDTO);
+        }
+        catch (NotFoundException ex)
+        {
+            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+        }
+    }
+
+    @GET
+    @Path("/fetch/covid/{code}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String fetchCovidDataForCountryByCode(@PathParam("code") String code)
     {
         Gson gson = new Gson();
         try
@@ -78,10 +102,9 @@ public class CountryResource
             List<CovidExDTO> covidList = gson.fromJson(covidData, new TypeToken<List<CovidExDTO>>()
             {
             }.getType());
-            
+
+//            FACADE.persistAllExternalCovidEntriesForCountryByCode(covidList, code);
             return GSON.toJson(covidList);
-//            CountryInDTO covDTO = FACADE.getLatestInternalCovidEntryForCountryByCode(code);
-//            return GSON.toJson(covDTO);
         }
 //        catch (NotFoundException ex)
 //        {
@@ -94,7 +117,7 @@ public class CountryResource
     }
 
     @GET
-    @Path("/fetch/{code}")
+    @Path("/fetch/country/{code}")
     @Produces(MediaType.APPLICATION_JSON)
     public String fetchCountryByCode(@PathParam("code") String code)
     {
@@ -113,7 +136,7 @@ public class CountryResource
             }.getType());
 
             CountryExDTO countryRes = countryList.get(0);
-            FACADE.persisteExCountry(countryRes);
+            FACADE.persisteExternalCountry(countryRes);
             return GSON.toJson(countryRes);
         }
         catch (NotFoundException | DatabaseException ex)
@@ -127,7 +150,7 @@ public class CountryResource
     }
 
     @GET
-    @Path("/fetch")
+    @Path("/fetch/country")
     @Produces(MediaType.APPLICATION_JSON)
     public String fetchAllCountries() throws IOException
     {
@@ -144,6 +167,7 @@ public class CountryResource
             List<CountryExDTO> countryList = gson.fromJson(countryData, new TypeToken<List<CountryExDTO>>()
             {
             }.getType());
+
             FACADE.persistAllExternalCountries(countryList);
             return GSON.toJson(countryList);
         }
