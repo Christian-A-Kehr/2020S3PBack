@@ -347,9 +347,9 @@ public class CountryFacade
             for (CovidExDTO o : DTOList)
             {
 
-                DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'", Locale.ENGLISH);
+                DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
                 DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
-                LocalDate localDate = LocalDate.parse("2018-04-10T04:00:00.000Z", inputFormatter);
+                LocalDate localDate = LocalDate.parse(o.getDate(), inputFormatter);
                 
                 String formattedDate = outputFormatter.format(localDate);
                 System.out.println(formattedDate);

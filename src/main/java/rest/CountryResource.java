@@ -103,13 +103,13 @@ public class CountryResource
             {
             }.getType());
 
-//            FACADE.persistAllExternalCovidEntriesForCountryByCode(covidList, code);
+            FACADE.persistAllExternalCovidEntriesForCountryByCode(covidList, code);
             return GSON.toJson(covidList);
         }
-//        catch (NotFoundException ex)
-//        {
-//            return "{\"msg\": \"" + ex.getMessage() + "\"}";
-//        }
+        catch (NotFoundException ex)
+        {
+            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+        }
         catch (IOException ex)
         {
             return "{\"msg\": \"The provided URL is invalid.\"}";
@@ -186,6 +186,7 @@ public class CountryResource
     {
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));
-        rest.fetchAllCountries();
+//        rest.fetchAllCountries();
+        rest.fetchCovidDataForCountryByCode("de");
     }
 }
