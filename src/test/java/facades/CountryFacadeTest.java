@@ -118,7 +118,7 @@ public class CountryFacadeTest
     {
         try
         {
-            String expt = facade.persisteExternalCountry(DTO1).getCountryName();
+            String expt = facade.persistExternalCountry(DTO1).getCountryName();
             String CCode = DTO1.getAlpha2Code();
             String res = facade.getInternalCountryByCode(CCode).getCountryName();
             System.out.println("persisteExCountryTest: expt =" + expt + " res= " + res);
