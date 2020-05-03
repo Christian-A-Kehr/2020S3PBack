@@ -1,7 +1,7 @@
 package facades;
 
 import dtos.CountryBasicInDTO;
-import dtos.CountryExDataDTO;
+import dtos.CountryExDTO;
 import dtos.CountryInDTO;
 import entities.CountryData;
 import entities.CovidData;
@@ -188,7 +188,7 @@ public class CountryFacade
      * @param DTOList
      * @return
      */
-    public void persistAllExternalCountries(List<CountryExDataDTO> DTOList) throws NotFoundException
+    public void persistAllExternalCountries(List<CountryExDTO> DTOList) throws NotFoundException
     {
         if (DTOList == null)
         {
@@ -201,11 +201,11 @@ public class CountryFacade
         }
 
         EntityManager em = emf.createEntityManager();
-        List<CountryExDataDTO> dtos = DTOList;
+        List<CountryExDTO> dtos = DTOList;
         try
         {
             em.getTransaction().begin();
-            for (CountryExDataDTO o : dtos)
+            for (CountryExDTO o : dtos)
             {
                 CountryData cd = new CountryData(o.getName(), o.getAlpha2Code(), o.getPopulation(), null, null);
                 em.persist(cd);
@@ -223,7 +223,7 @@ public class CountryFacade
      * @return
      * @throws errorhandling.NotFoundException
      */
-    public CountryData persisteExCountry(CountryExDataDTO dto) throws NotFoundException, DatabaseException
+    public CountryData persisteExCountry(CountryExDTO dto) throws NotFoundException, DatabaseException
     {
         if (dto == null)
         {

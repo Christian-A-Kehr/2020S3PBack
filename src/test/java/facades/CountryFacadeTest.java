@@ -5,7 +5,7 @@
  */
 package facades;
 
-import dtos.CountryExDataDTO;
+import dtos.CountryExDTO;
 import entities.CountryData;
 import utils.EMF_Creator;
 import entities.RenameMe;
@@ -39,7 +39,7 @@ public class CountryFacadeTest
     private static CountryFacade facade;
     CountryData cd1 = new CountryData("LandOfTheBrave", "US", 100, null, null);
     CountryData cd2 = new CountryData("LalaLand", "LL", 2, null, null);
-    CountryExDataDTO DTO1 = new CountryExDataDTO("ZombieLand", "ZL", 4);
+    CountryExDTO DTO1 = new CountryExDTO("ZombieLand", "ZL", 4);
 
     public CountryFacadeTest()
     {
