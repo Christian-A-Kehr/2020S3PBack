@@ -4,15 +4,16 @@ import facades.CountryFacade;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.sun.org.apache.xml.internal.utils.URI.MalformedURIException;
 import dtos.CountryBasicInDTO;
-import dtos.CountryExDataDTO;
+import dtos.CountryExDTO;
 import dtos.CountryInDTO;
+import dtos.CovidExDTO;
 import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
 import java.io.IOException;
 import utils.EMF_Creator;
 import java.util.List;
-import java.util.logging.Level;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,7 +41,7 @@ public class CountryResource
     public String getCountryCount()
     {
         long count = FACADE.getInternalCountryCount();
-        return "{\"count\":" + count + "}";  //Done manually so no need for a DTO
+        return "{\"count\": " + count + "}";  //Done manually so no need for a DTO
     }
 
     @GET
@@ -52,9 +53,10 @@ public class CountryResource
         {
             cBasicDTOList = FACADE.getAllInternalCountries();
             return GSON.toJson(cBasicDTOList);
-        } catch (NotFoundException ex)
+        }
+        catch (NotFoundException ex)
         {
-            return "{\"msg\":\"" + ex.getMessage() + "\"}";
+            return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
     }
 
@@ -63,40 +65,32 @@ public class CountryResource
     @Produces(MediaType.APPLICATION_JSON)
     public String getNewestCovidEntryByCountryCode(@PathParam("code") String code)
     {
-        try
-        {
-            CountryInDTO cDTO = FACADE.getLatestInternalCovidEntryForCountryByCode(code);
-            return GSON.toJson(cDTO);
-        } catch (NotFoundException ex)
-        {
-            return "{\"msg\":\"" + ex.getMessage() + "\"}";
-        }
-    }
-
-    @GET
-    @Path("/fetch")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String fetchAllCountries() throws IOException
-    {
         Gson gson = new Gson();
-        String countryData = HttpUtils.fetchData("http://restcountries.eu/rest/v1/");
-
         try
         {
-            if (countryData == null)
+            String covidData = HttpUtils.fetchData("https://api.covid19api.com/dayone/country/" + code);
+
+            if (covidData == null)
             {
-                return "{\"msg\":\"No data from http://restcountries.eu/rest/v1/\"}";
+                return "{\"msg\": \"No data from https://api.covid19api.com/dayone/country/" + code + "\"}";
             }
-            List<CountryExDataDTO> countries = gson.fromJson(countryData, new TypeToken<List<CountryExDataDTO>>()
+
+            List<CovidExDTO> covidList = gson.fromJson(covidData, new TypeToken<List<CovidExDTO>>()
             {
             }.getType());
-            FACADE.persistAllExternalCountries(countries);
-            return gson.toJson(countries);
-        } catch (NotFoundException ex)
-        {
-            return "{\"msg\":\"" + ex.getMessage() + "\"}";
+            
+            return GSON.toJson(covidList);
+//            CountryInDTO covDTO = FACADE.getLatestInternalCovidEntryForCountryByCode(code);
+//            return GSON.toJson(covDTO);
         }
-
+//        catch (NotFoundException ex)
+//        {
+//            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+//        }
+        catch (IOException ex)
+        {
+            return "{\"msg\": \"The provided URL is invalid.\"}";
+        }
     }
 
     @GET
@@ -107,19 +101,60 @@ public class CountryResource
         Gson gson = new Gson();
         try
         {
-            String country = HttpUtils.fetchData("https://restcountries.eu/rest/v1/alpha?codes=" + code);
-            List<CountryExDataDTO> countryList = gson.fromJson(country, new TypeToken<List<CountryExDataDTO>>()
+            String countryData = HttpUtils.fetchData("https://restcountries.eu/rest/v1/alpha?codes=" + code);
+
+            if (countryData == null)
+            {
+                return "{\"msg\": \"No data from http://restcountries.eu/rest/v1/" + code + "\"}";
+            }
+
+            List<CountryExDTO> countryList = gson.fromJson(countryData, new TypeToken<List<CountryExDTO>>()
             {
             }.getType());
 
-            String res = GSON.toJson(countryList.get(0));
-            FACADE.persisteExCountry(countryList.get(0));
-            return res;
-        } catch (NotFoundException | IOException | DatabaseException ex)
-        {
-            return "{\"msg\":\"" + ex.getMessage() + "\"}";
+            CountryExDTO countryRes = countryList.get(0);
+            FACADE.persisteExCountry(countryRes);
+            return GSON.toJson(countryRes);
         }
+        catch (NotFoundException | DatabaseException ex)
+        {
+            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+        }
+        catch (IOException ex)
+        {
+            return "{\"msg\": \"The provided URL is invalid.\"}";
+        }
+    }
 
+    @GET
+    @Path("/fetch")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String fetchAllCountries() throws IOException
+    {
+        Gson gson = new Gson();
+        try
+        {
+            String countryData = HttpUtils.fetchData("http://restcountries.eu/rest/v1/");
+
+            if (countryData == null)
+            {
+                return "{\"msg\": \"No data from http://restcountries.eu/rest/v1\"}";
+            }
+
+            List<CountryExDTO> countryList = gson.fromJson(countryData, new TypeToken<List<CountryExDTO>>()
+            {
+            }.getType());
+            FACADE.persistAllExternalCountries(countryList);
+            return GSON.toJson(countryList);
+        }
+        catch (NotFoundException ex)
+        {
+            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+        }
+        catch (IOException ex)
+        {
+            return "{\"msg\": \"The provided URL is invalid.\"}\n\n" + ex.getMessage() + "";
+        }
     }
 
     // for better stacktrace testning (remove later on)
