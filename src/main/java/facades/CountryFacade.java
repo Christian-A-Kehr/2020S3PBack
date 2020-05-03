@@ -209,9 +209,9 @@ public class CountryFacade
     /**
      * @author Brandstrup
      */
-    public void getAllExternalCovidEntriesForCountryByName()
+    public void getAllExternalCovidEntriesForCountryByCode()
     {
-        //https://api.covid19api.com/total/dayone/country/germany
+        //https://api.covid19api.com/total/dayone/country/de
         throw new UnsupportedOperationException();
     }
 }
