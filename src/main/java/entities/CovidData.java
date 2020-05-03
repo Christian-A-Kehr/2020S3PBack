@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
+import java.sql.Date;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -69,12 +69,12 @@ public class CovidData implements Serializable
         return id;
     }
 
-    private Date convertToDateViaInstant(LocalDate dateToConvert)
-    {
-        return java.util.Date.from(dateToConvert.atStartOfDay()
-                .atZone(ZoneId.systemDefault())
-                .toInstant().plusSeconds(86400));
-    }
+//    private Date convertToDateViaInstant(LocalDate dateToConvert)
+//    {
+//        return java.util.Date.from(dateToConvert.atStartOfDay()
+//                .atZone(ZoneId.systemDefault())
+//                .toInstant().plusSeconds(86400));
+//    }
 
     private LocalDateTime convertToLocalDateTimeViaInstant(Date dateToConvert)
     {
@@ -94,7 +94,7 @@ public class CovidData implements Serializable
     }
 
     /**
-     * Retrieves the Date as a java.util.Date.
+     * Retrieves the Date as a java.sql.Date.
      *
      * @return a Date.
      */
@@ -103,21 +103,21 @@ public class CovidData implements Serializable
         return date;
     }
 
-    /**
-     * Updates the Date using a LocalDate format.
-     *
-     * @param date LocalDate, use LocalDate.now() for the current time and use
-     * LocalDate.of(2001, Month.MARCH, 13) [as an example] for specific dates.
-     */
-    public void setDate(LocalDate date)
-    {
-        this.date = convertToDateViaInstant(date);
-    }
+//    /**
+//     * Updates the Date using a LocalDate format.
+//     *
+//     * @param date LocalDate, use LocalDate.now() for the current time and use
+//     * LocalDate.of(2001, Month.MARCH, 13) [as an example] for specific dates.
+//     */
+//    public void setDate(LocalDate date)
+//    {
+//        this.date = convertToDateViaInstant(date);
+//    }
 
     /**
-     * Updates the Date using a java.util.Date format.
+     * Updates the Date using a java.sql.Date format.
      *
-     * @param date A regular java.util.Date, which is the SQL's preferred
+     * @param date A regular java.sql.Date, which is the SQL's preferred
      * format.
      */
     public void setDate(Date date)
