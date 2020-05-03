@@ -118,9 +118,9 @@ public class CountryFacadeTest
     {
         try
         {
-            String expt = facade.persisteExCountry(DTO1).getCountryName();
+            String expt = facade.persisteExternalCountry(DTO1).getCountryName();
             String CCode = DTO1.getAlpha2Code();
-            String res = facade.getCountryFromDatabaseByCountrycode(CCode).getCountryName();
+            String res = facade.getInternalCountryByCode(CCode).getCountryName();
             System.out.println("persisteExCountryTest: expt =" + expt + " res= " + res);
             assertEquals(expt, res, "Expects two rows in the database");
         } catch (DatabaseException ex)
@@ -138,7 +138,7 @@ public class CountryFacadeTest
     {
         String expt = cd2.getCountryName();
         String lookingForCC = cd2.getCountryCode();
-        String res = facade.getCountryFromDatabaseByCountrycode(lookingForCC).getCountryName();
+        String res = facade.getInternalCountryByCode(lookingForCC).getCountryName();
         System.out.println("getCountryFromDatabaseByCountrycode: expt =" + expt + " res= " + res);
         assertEquals(expt, res, "Expects LalaLand");
     }

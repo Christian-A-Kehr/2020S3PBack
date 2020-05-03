@@ -15,14 +15,13 @@ import entities.CovidData;
 public class CountryInDTO
 {
 
-    String countryName, countryCode, date;
+    String countryName, date;
     long population, newConfirmedInfected, totalConfirmedInfected, newRecovered,
             totalRecovered, newDeaths, totalDeaths;
 
     public CountryInDTO(CountryData cou, CovidData cov)
     {
         this.countryName = cou.getCountryName();
-        this.countryCode = cou.getCountryCode();
         this.population = cou.getPopulation();
         if (cov != null)
         {
@@ -39,7 +38,6 @@ public class CountryInDTO
     public CountryInDTO(CountryData cou)
     {
         this.countryName = cou.getCountryName();
-        this.countryCode = cou.getCountryCode();
         this.population = cou.getPopulation();
     }
 
@@ -51,16 +49,6 @@ public class CountryInDTO
     public void setCountryName(String countryName)
     {
         this.countryName = countryName;
-    }
-
-    public String getCountryCode()
-    {
-        return countryCode;
-    }
-
-    public void setCountryCode(String countryCode)
-    {
-        this.countryCode = countryCode;
     }
 
     public String getDate()
@@ -146,13 +134,17 @@ public class CountryInDTO
     @Override
     public String toString()
     {
-        return "CountryInDTO{" + "countryName=" + countryName + ", countryCode="
-                + countryCode + ", date=" + date + ", population=" + population
-                + ", newConfirmedInfected=" + newConfirmedInfected
-                + ", totalConfirmedInfected=" + totalConfirmedInfected
-                + ", newRecovered=" + newRecovered + ", totalRecovered="
-                + totalRecovered + ", newDeaths=" + newDeaths
-                + ", totalDeaths=" + totalDeaths + '}';
+        return "CountryInDTO{" 
+                + "countryName=" + countryName 
+                + ", date=" + date 
+                + ", population=" + population 
+                + ", newConfirmedInfected=" + newConfirmedInfected 
+                + ", totalConfirmedInfected=" + totalConfirmedInfected 
+                + ", newRecovered=" + newRecovered 
+                + ", totalRecovered=" + totalRecovered 
+                + ", newDeaths=" + newDeaths 
+                + ", totalDeaths=" + totalDeaths 
+                + '}';
     }
 
 }
