@@ -37,8 +37,8 @@ public class CountryFacadeTest
 
     private static EntityManagerFactory emf;
     private static CountryFacade facade;
-    CountryData cd1 = new CountryData("LandOfTheBrave", "US", 100, null, null);
-    CountryData cd2 = new CountryData("LalaLand", "LL", 2, null, null);
+    CountryData cd1 = new CountryData("LandOfTheBrave", "XX", 100, null, null);
+    CountryData cd2 = new CountryData("LalaLand", "YY", 2, null, null);
     CountryExDTO DTO1 = new CountryExDTO("ZombieLand", "ZL", 4);
 
     public CountryFacadeTest()

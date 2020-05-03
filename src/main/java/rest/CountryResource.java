@@ -186,7 +186,7 @@ public class CountryResource
     {
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));
-//        rest.fetchAllCountries();
-        rest.fetchCovidDataForCountryByCode("us");
+        rest.fetchAllCountries();
+        rest.fetchCovidDataForCountryByCode("de");
     }
 }
