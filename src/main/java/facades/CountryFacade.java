@@ -1,15 +1,18 @@
 package facades;
 
 import dtos.CountryBasicInDTO;
+import dtos.CountryExDataDTO;
 import dtos.CountryInDTO;
 import entities.CountryData;
 import entities.CovidData;
+import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -32,17 +35,13 @@ public class CountryFacade
 
     /**
      * This facade contains the following methods in order:
-     * 
-     * getInternalCountryCount
-     * getAllInternalCountries
+     *
+     * getInternalCountryCount getAllInternalCountries
      * getLatestInternalCovidEntryForCountryByCode
      * getAllInternalCovidEntriesForCountryByCode
-     * getInternalCovidEntryForCountryByCodeByDate
-     * getAllExternalCountries
-     * getExternalCountryByCode
-     * getAllExternalCovidEntriesForCountryByName
+     * getInternalCovidEntryForCountryByCodeByDate getAllExternalCountries
+     * getExternalCountryByCode getAllExternalCovidEntriesForCountryByName
      */
-    
     /**
      *
      * @param _emf
@@ -76,8 +75,7 @@ public class CountryFacade
         {
             long countryCount = (long) em.createQuery("SELECT COUNT(o) FROM CountryData o").getSingleResult();
             return countryCount;
-        }
-        finally
+        } finally
         {
             em.close();
         }
@@ -115,8 +113,7 @@ public class CountryFacade
             });
 
             return countryBasicDTOList;
-        }
-        finally
+        } finally
         {
             em.close();
         }
@@ -161,12 +158,10 @@ public class CountryFacade
             }
 
             return new CountryInDTO(cou);
-        }
-        catch (IllegalArgumentException ex)
+        } catch (IllegalArgumentException ex)
         {
             throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-        }
-        finally
+        } finally
         {
             em.close();
         }
@@ -190,20 +185,72 @@ public class CountryFacade
 
     /**
      * @author Christian
+     * @param DTOList
+     * @return
      */
-    public void getAllExternalCountries()
+    public void persistAllExternalCountries(List<CountryExDataDTO> DTOList) throws NotFoundException
     {
-        //http://restcountries.eu/rest/v1/
-        throw new UnsupportedOperationException();
+        if (DTOList == null)
+        {
+            throw new NotFoundException("No objects retreived from database.");
+        }
+
+        if (DTOList.isEmpty())
+        {
+            throw new NotFoundException("Database is empty.");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        List<CountryExDataDTO> dtos = DTOList;
+        try
+        {
+            em.getTransaction().begin();
+            for (CountryExDataDTO o : dtos)
+            {
+                CountryData cd = new CountryData(o.getName(), o.getAlpha2Code(), o.getPopulation(), null, null);
+                em.persist(cd);
+            }
+            em.getTransaction().commit();
+        } finally
+        {
+            em.close();
+        }
     }
 
     /**
      * @author Christian
+     * @param dto
+     * @return
+     * @throws errorhandling.NotFoundException
      */
-    public void getExternalCountryByCode()
+    public CountryData persisteExCountry(CountryExDataDTO dto) throws NotFoundException, DatabaseException
     {
+        if (dto == null)
+        {
+            throw new NotFoundException("No objects passed");
+        }
+//        TBD
+//        if (
+//                getCountryFromDatabaseByCountrycode(dto.getAlpha2Code())
+//                {
+//                }
+        CountryData cd;
+        EntityManager em = emf.createEntityManager();
+        try
+        {
+            em.getTransaction().begin();
+            cd = new CountryData(dto.getName(), dto.getAlpha2Code(), dto.getPopulation(), null, null);
+            em.persist(cd);
+            em.getTransaction().commit();
+            return cd;
+        } catch (EntityExistsException ex)
+        {
+            throw new DatabaseException("An identical object entry already exists in the database.");
+        } finally
+        {
+            em.close();
+        }
         //http://restcountries.eu/rest/v1/alpha?codes=de
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -214,4 +261,38 @@ public class CountryFacade
         //https://api.covid19api.com/total/dayone/country/germany
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * author Christian
+     *
+     * @param countrycode
+     * @return
+     * @throws NotFoundException
+     */
+    // Redundent! use in getLatestInternalCovidEntryForCountryByCode
+    public CountryData getCountryFromDatabaseByCountrycode(String countrycode) throws NotFoundException
+    {
+        EntityManager em = emf.createEntityManager();
+        if (countrycode == null)
+        {
+            throw new NotFoundException("No objects passed");
+        }
+        try
+        {
+            TypedQuery<CountryData> query = em.createQuery("SELECT e From CountryData e where e.countryCode = :code", CountryData.class).setParameter("code", countrycode);
+            CountryData result = query.getSingleResult();
+            if (result == null)
+            {
+                throw new NotFoundException("no data match");
+            } else
+            {
+                return query.getSingleResult();
+            }
+
+        } finally
+        {
+            em.close();
+        }
+    }
+
 }
