@@ -9,13 +9,13 @@ package dtos;
  *
  * @author Christian
  */
-public class CountryExDataDTO
+public class CountryExDTO
 {
 
     private String name, alpha2Code;
     private long population;
 
-    public CountryExDataDTO(String name, String alpha2Code, long population)
+    public CountryExDTO(String name, String alpha2Code, long population)
     {
         this.name = name;
         this.alpha2Code = alpha2Code;
