@@ -16,10 +16,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
+import javax.persistence.UniqueConstraint;
 
 /**
  *
@@ -27,7 +29,9 @@ import javax.persistence.Temporal;
  */
 @Entity
 @NamedQuery(name = "CovidData.deleteAllRows", query = "DELETE from CovidData")
-@Table(name = "covidEntries")
+@Table(name = "covidEntries", uniqueConstraints={
+    @UniqueConstraint(columnNames = {"DATE", "COUNTRY_CODE"})
+})
 public class CovidData implements Serializable
 {
 
@@ -36,11 +40,12 @@ public class CovidData implements Serializable
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @Temporal(javax.persistence.TemporalType.DATE)
     private Date date;
 
     @ManyToOne
+    @JoinColumn(name = "COUNTRY_CODE", referencedColumnName = "COUNTRYCODE")
     private CountryData country;
 
     long newConfirmedInfected, totalConfirmedInfected, newRecovered, totalRecovered, newDeaths, totalDeaths;
@@ -221,7 +226,7 @@ public class CovidData implements Serializable
             return false;
         }
         final CovidData other = (CovidData) obj;
-        if (!Objects.equals(this.date, other.date))
+        if (!Objects.equals(this.date.getTime(), other.date.getTime()))
         {
             return false;
         }
