@@ -188,37 +188,39 @@ public class CountryFacade
         try
         {
             CountryData country;
-            TypedQuery<CountryData> query = em.createQuery("SELECT cou FROM Country cou "
-                    + "WHERE cou.countrycode = :code", CountryData.class)
+            TypedQuery<CountryData> query = em.createQuery("SELECT cou FROM CountryData cou "
+                    + "WHERE cou.countryCode = :code", CountryData.class)
                     .setParameter("code", code);
             country = query.getSingleResult();
 
-            if (country == null)
+            if (country == null || country.getCountryCode().length() == 0)
             {
                 throw new NotFoundException("No object matching provided id exists in database.");
             }
-
+            System.out.println("Fetched country entity: " + country.toString());
             if (!(country.getCovidEntries().isEmpty()))
             {
-                HashSet<CovidData> covidEntries = new HashSet<CovidData>(country.getCovidEntries());
-                CovidData latestEntry = Collections.max(covidEntries, (CovidData o1, CovidData o2) ->
+                HashSet<CovidData> covidEntries = new HashSet<>(country.getCovidEntries());
+                CovidData newestEntry = Collections.max(covidEntries, (CovidData o1, CovidData o2) ->
                 {
                     return o1.getDate().compareTo(o2.getDate());
                 });
-                long newestCovidId = latestEntry.getId();
+                System.out.println("Newest covid entity from country: " + newestEntry.toString());
+                long newestCovidId = newestEntry.getId();
                 // previous 6 lines really need testing!
 
                 CovidData covid = em.find(CovidData.class, newestCovidId);
+                System.out.println("Newest covid entity from database: " + covid.toString());
 
                 return new CountryInDTO(country, covid);
             }
 
             return new CountryInDTO(country);
         }
-        catch (IllegalArgumentException ex)
-        {
-            throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-        }
+//        catch (IllegalArgumentException ex)
+//        {
+//            throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
+//        }
         finally
         {
             em.close();
