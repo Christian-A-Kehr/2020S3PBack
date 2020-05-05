@@ -171,7 +171,7 @@ public class CountryResource
             FACADE.persistAllExternalCountries(countryList);
             return GSON.toJson(countryList);
         }
-        catch (NotFoundException ex)
+        catch (NotFoundException | DatabaseException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -181,7 +181,7 @@ public class CountryResource
         }
     }
 
-    // for better stacktrace testning (remove later on)
+    // for better stacktrace testing (remove later on)
     public static void main(String[] args) throws IOException, NotFoundException
     {
         CountryResource rest = new CountryResource();
