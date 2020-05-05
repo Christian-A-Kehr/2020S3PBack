@@ -29,9 +29,16 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @NamedQuery(name = "CovidData.deleteAllRows", query = "DELETE from CovidData")
-@Table(name = "covidEntries", uniqueConstraints={
-    @UniqueConstraint(columnNames = {"DATE", "COUNTRY_CODE"})
-})
+@Table(name = "covidEntries"
+//        ,
+//         uniqueConstraints =
+//        {
+//            @UniqueConstraint(columnNames =
+//            {
+//                "DATE", "COUNTRY_CODE"
+//    })
+//        }
+)
 public class CovidData implements Serializable
 {
 
@@ -136,7 +143,7 @@ public class CovidData implements Serializable
     }
 
     /**
-     * Don't use this method. Instead call addCovidEntry from the CountryData 
+     * Don't use this method. Instead call addCovidEntry from the CountryData
      * you are adding this entry to.
      */
     public void setCountry(CountryData country)
@@ -203,7 +210,7 @@ public class CovidData implements Serializable
     {
         this.totalDeaths = totalDeaths;
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -233,4 +240,21 @@ public class CovidData implements Serializable
         return true;
     }
 
+    @Override
+    public String toString()
+    {
+        return "CovidData{" 
+                + "id=" + id 
+                + ", date=" + this.getLocalDate().toString()
+                + ", country=" + country.getCountryName()
+                + ", newConfirmedInfected=" + newConfirmedInfected 
+                + ", totalConfirmedInfected=" + totalConfirmedInfected 
+                + ", newRecovered=" + newRecovered 
+                + ", totalRecovered=" + totalRecovered 
+                + ", newDeaths=" + newDeaths 
+                + ", totalDeaths=" + totalDeaths 
+                + '}';
+    }
+
+    
 }
