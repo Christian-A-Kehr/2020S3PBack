@@ -74,4 +74,16 @@ public class CovidExDTO
         this.Province = Province;
     }
 
+    @Override
+    public String toString()
+    {
+        return "CovidExDTO{" 
+                + "Confirmed=" + Confirmed 
+                + ", Deaths=" + Deaths 
+                + ", Recovered=" + Recovered 
+                + ", Date=" + Date 
+                + ", Province=" + Province 
+                + '}';
+    }
+    
 }
