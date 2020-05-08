@@ -115,7 +115,11 @@ public class CountryResource
             return "{\"msg\": \"The provided URL is invalid.\"}";
         }
     }
-
+/**
+ * author Christian
+ * @param code
+ * @return fetchs county from external API by country code
+ */
     @GET
     @Path("/fetch/country/{code}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -148,7 +152,11 @@ public class CountryResource
             return "{\"msg\": \"The provided URL is invalid.\"}";
         }
     }
-
+/**
+ * author Christian
+ * @return all countries from external API
+ * @throws IOException 
+ */
     @GET
     @Path("/fetch/country")
     @Produces(MediaType.APPLICATION_JSON)
@@ -171,7 +179,7 @@ public class CountryResource
             FACADE.persistAllExternalCountries(countryList);
             return GSON.toJson(countryList);
         }
-        catch (NotFoundException ex)
+        catch (NotFoundException | DatabaseException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -181,12 +189,13 @@ public class CountryResource
         }
     }
 
-    // for better stacktrace testning (remove later on)
+    // for better stacktrace testing (remove later on)
     public static void main(String[] args) throws IOException, NotFoundException
     {
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));
-        rest.fetchAllCountries();
-        rest.fetchCovidDataForCountryByCode("de");
+//        rest.fetchAllCountries();
+//        rest.fetchCovidDataForCountryByCode("dk");
+        System.out.println("Result: " + rest.getNewestCovidEntryForCountryByCode("de"));
     }
 }
