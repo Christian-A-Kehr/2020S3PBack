@@ -197,7 +197,7 @@ public class CountryFacade
             {
                 throw new NotFoundException("No object matching provided id exists in database.");
             }
-            System.out.println("Fetched country entity: " + country.toString());
+//            System.out.println("Fetched country entity: " + country.toString());
             if (!(country.getCovidEntries().isEmpty()))
             {
                 HashSet<CovidData> covidEntries = new HashSet<>(country.getCovidEntries());
@@ -205,12 +205,11 @@ public class CountryFacade
                 {
                     return o1.getDate().compareTo(o2.getDate());
                 });
-                System.out.println("Newest covid entity from country: " + newestEntry.toString());
+//                System.out.println("Newest covid entity from country: " + newestEntry.toString());
                 long newestCovidId = newestEntry.getId();
-                // previous 6 lines really need testing!
 
                 CovidData covid = em.find(CovidData.class, newestCovidId);
-                System.out.println("Newest covid entity from database: " + covid.toString());
+//                System.out.println("Newest covid entity from database: " + covid.toString());
 
                 return new CountryInDTO(country, covid);
             }
@@ -349,11 +348,18 @@ public class CountryFacade
         }
 
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
-
+        List<CovidExDTO> filteredDTOList = new ArrayList<>();
         CountryData country;
-        HashMap existingDatesMap = new HashMap<String, String>();
-        List<LocalDate> existingDates = new ArrayList<>();
+        HashMap existingDates = new HashMap<String, String>();
 
+        for (CovidExDTO covidExDTO : exDTOList)
+        {
+            if (covidExDTO.getProvince().isEmpty())
+            {
+                filteredDTOList.add(covidExDTO);
+            }
+        }
+        
         EntityManager em = emf.createEntityManager();
         try
         {
@@ -374,18 +380,18 @@ public class CountryFacade
                 for (CovidData covid : country.getCovidEntries())
                 {
                     String existingDate = covid.getLocalDate().toLocalDate().toString();
-                    existingDatesMap.put(existingDate, null);
+                    existingDates.put(existingDate, null);
                 }
             }
 
-            for (CovidExDTO o : exDTOList)
+            for (CovidExDTO o : filteredDTOList)
             {
                 LocalDate newDate = LocalDate.parse(o.getDate(), inputFormatter);
 //                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
 //                String formattedDate = outputFormatter.format(localDate);
 //                System.out.println(formattedDate);
 
-                if (!(existingDatesMap.containsKey(newDate.toString())))
+                if (!(existingDates.containsKey(newDate.toString())))
                 {
                     Date date = Date.from(newDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusSeconds(86400));
                     long newConfirmed = 0;

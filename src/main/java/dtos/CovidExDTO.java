@@ -13,14 +13,15 @@ public class CovidExDTO
 {
 
     long Confirmed, Deaths, Recovered;
-    String Date;
+    String Date, Province;
 
-    public CovidExDTO(long Confirmed, long Deaths, long Recovered, String Date)
+    public CovidExDTO(long Confirmed, long Deaths, long Recovered, String Date, String Province)
     {
         this.Confirmed = Confirmed;
         this.Deaths = Deaths;
         this.Recovered = Recovered;
         this.Date = Date;
+        this.Province = Province;
     }
 
     public long getConfirmed()
@@ -63,4 +64,26 @@ public class CovidExDTO
         this.Date = Date;
     }
 
+    public String getProvince()
+    {
+        return Province;
+    }
+
+    public void setProvince(String Province)
+    {
+        this.Province = Province;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CovidExDTO{" 
+                + "Confirmed=" + Confirmed 
+                + ", Deaths=" + Deaths 
+                + ", Recovered=" + Recovered 
+                + ", Date=" + Date 
+                + ", Province=" + Province 
+                + '}';
+    }
+    
 }
