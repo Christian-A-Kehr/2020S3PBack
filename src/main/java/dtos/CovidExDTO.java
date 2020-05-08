@@ -5,8 +5,6 @@
  */
 package dtos;
 
-import entities.CovidData;
-
 /**
  *
  * @author Brandstrup
@@ -14,55 +12,78 @@ import entities.CovidData;
 public class CovidExDTO
 {
 
-    long confirmed, deaths, recovered;
-    String date;
+    long Confirmed, Deaths, Recovered;
+    String Date, Province;
 
-    public CovidExDTO(long confirmed, long deaths, long recovered, String date)
+    public CovidExDTO(long Confirmed, long Deaths, long Recovered, String Date, String Province)
     {
-        this.confirmed = confirmed;
-        this.deaths = deaths;
-        this.recovered = recovered;
-        this.date = date;
+        this.Confirmed = Confirmed;
+        this.Deaths = Deaths;
+        this.Recovered = Recovered;
+        this.Date = Date;
+        this.Province = Province;
     }
 
     public long getConfirmed()
     {
-        return confirmed;
+        return Confirmed;
     }
 
-    public void setConfirmed(long confirmed)
+    public void setConfirmed(long Confirmed)
     {
-        this.confirmed = confirmed;
+        this.Confirmed = Confirmed;
     }
 
     public long getDeaths()
     {
-        return deaths;
+        return Deaths;
     }
 
-    public void setDeaths(long deaths)
+    public void setDeaths(long Deaths)
     {
-        this.deaths = deaths;
+        this.Deaths = Deaths;
     }
 
     public long getRecovered()
     {
-        return recovered;
+        return Recovered;
     }
 
-    public void setRecovered(long recovered)
+    public void setRecovered(long Recovered)
     {
-        this.recovered = recovered;
+        this.Recovered = Recovered;
     }
 
     public String getDate()
     {
-        return date;
+        return Date;
     }
 
-    public void setDate(String date)
+    public void setDate(String Date)
     {
-        this.date = date;
+        this.Date = Date;
     }
 
+    public String getProvince()
+    {
+        return Province;
+    }
+
+    public void setProvince(String Province)
+    {
+        this.Province = Province;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CovidExDTO{" 
+                + "Confirmed=" + Confirmed 
+                + ", Deaths=" + Deaths 
+                + ", Recovered=" + Recovered 
+                + ", Date=" + Date 
+                + ", Province=" + Province 
+                + '}';
+    }
+    
 }

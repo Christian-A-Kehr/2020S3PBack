@@ -174,4 +174,17 @@ public class CountryData implements Serializable
         return true;
     }
 
+    @Override
+    public String toString()
+    {
+        return "CountryData{" 
+                + "id=" + id 
+                + ", countryName=" + countryName 
+                + ", countryCode=" + countryCode 
+                + ", population=" + population 
+                + '}';
+    }
+    
+    
+
 }

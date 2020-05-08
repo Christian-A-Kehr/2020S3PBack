@@ -5,7 +5,7 @@
  */
 package facades;
 
-import dtos.CountryExDataDTO;
+import dtos.CountryExDTO;
 import entities.CountryData;
 import utils.EMF_Creator;
 import entities.RenameMe;
@@ -37,9 +37,9 @@ public class CountryFacadeTest
 
     private static EntityManagerFactory emf;
     private static CountryFacade facade;
-    CountryData cd1 = new CountryData("LandOfTheBrave", "US", 100, null, null);
-    CountryData cd2 = new CountryData("LalaLand", "LL", 2, null, null);
-    CountryExDataDTO DTO1 = new CountryExDataDTO("ZombieLand", "ZL", 4);
+    CountryData cd1 = new CountryData("LandOfTheBrave", "XX", 100, null, null);
+    CountryData cd2 = new CountryData("LalaLand", "YY", 2, null, null);
+    CountryExDTO DTO1 = new CountryExDTO("ZombieLand", "ZL", 4);
 
     public CountryFacadeTest()
     {
@@ -118,9 +118,9 @@ public class CountryFacadeTest
     {
         try
         {
-            String expt = facade.persisteExCountry(DTO1).getCountryName();
+            String expt = facade.persistExternalCountry(DTO1).getCountryName();
             String CCode = DTO1.getAlpha2Code();
-            String res = facade.getCountryFromDatabaseByCountrycode(CCode).getCountryName();
+            String res = facade.getInternalCountryByCode(CCode).getCountryName();
             System.out.println("persisteExCountryTest: expt =" + expt + " res= " + res);
             assertEquals(expt, res, "Expects two rows in the database");
         } catch (DatabaseException ex)
@@ -138,7 +138,7 @@ public class CountryFacadeTest
     {
         String expt = cd2.getCountryName();
         String lookingForCC = cd2.getCountryCode();
-        String res = facade.getCountryFromDatabaseByCountrycode(lookingForCC).getCountryName();
+        String res = facade.getInternalCountryByCode(lookingForCC).getCountryName();
         System.out.println("getCountryFromDatabaseByCountrycode: expt =" + expt + " res= " + res);
         assertEquals(expt, res, "Expects LalaLand");
     }
