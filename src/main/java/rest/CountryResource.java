@@ -115,7 +115,11 @@ public class CountryResource
             return "{\"msg\": \"The provided URL is invalid.\"}";
         }
     }
-
+/**
+ * author Christian
+ * @param code
+ * @return fetchs county from external API by country code
+ */
     @GET
     @Path("/fetch/country/{code}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -148,7 +152,11 @@ public class CountryResource
             return "{\"msg\": \"The provided URL is invalid.\"}";
         }
     }
-
+/**
+ * author Christian
+ * @return all countries from external API
+ * @throws IOException 
+ */
     @GET
     @Path("/fetch/country")
     @Produces(MediaType.APPLICATION_JSON)
