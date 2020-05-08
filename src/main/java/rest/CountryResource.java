@@ -101,7 +101,8 @@ public class CountryResource
         // if 300+ (request fail) read the error response.
         if (responseCode > 299)
         {
-            streamReader = new InputStreamReader(con.getErrorStream());
+//            streamReader = new InputStreamReader(con.getErrorStream());
+            return null;
         }
         else
         {
@@ -169,9 +170,13 @@ public class CountryResource
 
             if (covDTO.getDate() == null)
             {
-                fetchCovidDataForCountryByCode(code);
-                covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
-                
+                synchronized (this)
+                {
+                    fetchCovidDataForCountryByCode(code);
+                    covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
+                }
+
+//                return "{\"msg\": \"The database was empty. Please wait a few seconds and then call this endpoint again.\"}";
                 // this is a poor solution. Look into promises or runnables; worst case while loop
 //                synchronized (this)
 //                {
@@ -197,8 +202,8 @@ public class CountryResource
             LocalDate covidDate = LocalDate.parse(covDTO.getDate(), format);
             LocalDate yesterdayDate = LocalDate.now().minusDays(1);
 
-            System.out.println("Formatted Covid String: " + covidDate.toString());
-            System.out.println("Init Today String: " + yesterdayDate.toString());
+            System.out.println("Covid String: " + covidDate.toString());
+            System.out.println("Yesterday String: " + yesterdayDate.toString());
             String equals = "No";
             if (covidDate.isEqual(yesterdayDate))
             {
@@ -333,7 +338,8 @@ public class CountryResource
 //        rest.fetchAllCountries();
 //        rest.fetchCovidDataForCountryByCode("de");
 //        System.out.println("Result: " + rest.getNewestCovidEntryForCountryByCode("de"));
-        rest.getNewestCovidEntryForCountryByCode("aw");
+//        rest.getNewestCovidEntryForCountryByCode("no");
+
     }
 
 }
