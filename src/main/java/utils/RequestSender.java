@@ -76,14 +76,23 @@ public class RequestSender
             "GET", "POST", "PUT", "DELETE", "TRACE", "OPTIONS", "HEAD"
         };
 
-        for (String possibleMethod : possibleMethods)
+        boolean isNotValidMethod = true;
+        int possibleMethodsLength = possibleMethods.length;
+        int iterator = 0;
+        
+        while(isNotValidMethod)
         {
-            if (!(method.equalsIgnoreCase(possibleMethod)))
+            if (iterator == possibleMethodsLength)
             {
-                throw new IllegalArgumentException("Invalid method.");
+                throw new IllegalArgumentException("Illegal method provided.");
             }
+            else if (method.equalsIgnoreCase(possibleMethods[iterator]))
+            {
+                isNotValidMethod = false;
+            }
+            iterator++;
         }
-
+        
         con.setConnectTimeout(timeout);
         con.setRequestMethod(method);
         con.setDoOutput(false);

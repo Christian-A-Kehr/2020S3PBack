@@ -10,7 +10,6 @@ import dtos.CountryExDTO;
 import dtos.CountryInDTO;
 import dtos.CovidExDTO;
 import errorhandling.DatabaseException;
-import errorhandling.NotFoundException;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -63,7 +62,7 @@ public class CountryResource
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private List<CovidExDTO> fetchCovidDataFromExternal(String url, String code, String method)
-            throws SocketTimeoutException, ProtocolException, IOException, NotFoundException
+            throws SocketTimeoutException, ProtocolException, IOException, IllegalArgumentException
     {
         Gson gson = new Gson();
         HashMap headers = new HashMap();
@@ -97,7 +96,7 @@ public class CountryResource
             cBasicDTOList = FACADE.getAllInternalCountries();
             return GSON.toJson(cBasicDTOList);
         }
-        catch (NotFoundException ex)
+        catch (IllegalArgumentException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -137,7 +136,7 @@ public class CountryResource
             }
             return GSON.toJson(covDTOs);
         }
-        catch (NotFoundException ex)
+        catch (IllegalArgumentException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -204,7 +203,7 @@ public class CountryResource
 
             return GSON.toJson(covDTO);
         }
-        catch (NotFoundException ex)
+        catch (IllegalArgumentException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -219,7 +218,7 @@ public class CountryResource
             List<CovidExDTO> covidList = fetchCovidDataFromExternal(covidURL, code, "GET");
             return GSON.toJson(covidList);
         }
-        catch (NotFoundException ex)
+        catch (IllegalArgumentException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -252,7 +251,7 @@ public class CountryResource
             FACADE.persistExternalCountry(countryRes);
             return GSON.toJson(countryRes);
         }
-        catch (NotFoundException | DatabaseException ex)
+        catch (IllegalArgumentException | DatabaseException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -284,7 +283,7 @@ public class CountryResource
             FACADE.persistAllExternalCountries(countryList);
             return GSON.toJson(countryList);
         }
-        catch (NotFoundException | DatabaseException ex)
+        catch (IllegalArgumentException | DatabaseException ex)
         {
             return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
@@ -295,7 +294,7 @@ public class CountryResource
     }
 
     // for better stacktrace testing (remove later on)
-    public static void main(String[] args) throws IOException, NotFoundException
+    public static void main(String[] args) throws IOException, IllegalArgumentException
     {
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));

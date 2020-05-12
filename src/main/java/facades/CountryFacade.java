@@ -7,7 +7,6 @@ import dtos.CovidExDTO;
 import entities.CountryData;
 import entities.CovidData;
 import errorhandling.DatabaseException;
-import errorhandling.NotFoundException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -110,9 +109,9 @@ public class CountryFacade
      *
      * @param code
      * @return
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      */
-    public CountryData getInternalCountryByCode(String code) throws NotFoundException
+    public CountryData getInternalCountryByCode(String code) throws IllegalArgumentException
     {
         EntityManager em = emf.createEntityManager();
         try
@@ -125,7 +124,7 @@ public class CountryFacade
 
             if (country == null)
             {
-                throw new NotFoundException("No object matching provided country code exists in database.");
+                throw new IllegalArgumentException("No object matching provided country code exists in database.");
             }
 
             return country;
@@ -143,7 +142,7 @@ public class CountryFacade
      *
      * @return a List of DTO objects.
      */
-    public List<CountryBasicInDTO> getAllInternalCountries() throws NotFoundException
+    public List<CountryBasicInDTO> getAllInternalCountries() throws IllegalArgumentException
     {
         EntityManager em = getEntityManager();
         try
@@ -154,12 +153,12 @@ public class CountryFacade
 
             if (query.getResultList() == null)
             {
-                throw new NotFoundException("No objects retrieved from database.");
+                throw new IllegalArgumentException("No objects retrieved from database.");
             }
 
             if (query.getResultList().isEmpty())
             {
-                throw new NotFoundException("Database is empty.");
+                throw new IllegalArgumentException("Database is empty.");
             }
 
             query.getResultList().forEach((o) ->
@@ -200,7 +199,6 @@ public class CountryFacade
 
             if (country == null || country.getCountryCode().length() < 2)
             {
-//                throw new NotFoundException("No object matching provided id exists in database.");
                 return result;
             }
             else if (!(country.getCovidEntries().isEmpty()))
@@ -266,7 +264,6 @@ public class CountryFacade
 
             if (country == null || country.getCountryCode().length() < 2)
             {
-//                throw new NotFoundException("No object matching provided id exists in database.");
                 return result;
             }
             else if (!(country.getCovidEntries().isEmpty()))
@@ -320,14 +317,14 @@ public class CountryFacade
      * author Christian
      *
      * @param DTOList
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      * @throws DatabaseException
      */
-    public void persistAllExternalCountries(List<CountryExDTO> DTOList) throws NotFoundException, DatabaseException
+    public void persistAllExternalCountries(List<CountryExDTO> DTOList) throws IllegalArgumentException, DatabaseException
     {
         if (DTOList.isEmpty())
         {
-            throw new NotFoundException("No objects retrieved from http://restcountries.eu/rest/v1.");
+            throw new IllegalArgumentException("No objects retrieved from http://restcountries.eu/rest/v1.");
         }
 
         HashMap existingCountryMap = new HashMap<String, String>();
@@ -374,16 +371,16 @@ public class CountryFacade
      *
      * @param DTO
      * @return
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      * @throws DatabaseException if an identical object already exists in the
      * database
      */
-    public CountryData persistExternalCountry(CountryExDTO DTO) throws NotFoundException, DatabaseException
+    public CountryData persistExternalCountry(CountryExDTO DTO) throws IllegalArgumentException, DatabaseException
     {
         // this guard makes no sense. There will always be a DTO otherwise you won't be able to call the method
         if (DTO == null)
         {
-            throw new NotFoundException("No objects passed");
+            throw new IllegalArgumentException("No objects passed");
         }
 
         CountryData cd;
@@ -412,13 +409,13 @@ public class CountryFacade
      *
      * @param exDTOList
      * @param code
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      */
-    public void persistAllExternalCovidEntriesForCountryByCode(List<CovidExDTO> exDTOList, String code) throws NotFoundException
+    public void persistAllExternalCovidEntriesForCountryByCode(List<CovidExDTO> exDTOList, String code) throws IllegalArgumentException
     {
         if (exDTOList.isEmpty())
         {
-            throw new NotFoundException("No objects retrieved from https://api.covid19api.com/total/dayone/country/" + code + ".");
+            throw new IllegalArgumentException("No objects retrieved from https://api.covid19api.com/total/dayone/country/" + code + ".");
         }
 
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
@@ -446,7 +443,7 @@ public class CountryFacade
 
             if (country == null)
             {
-                throw new NotFoundException("No object matching provided country code exists in database.");
+                throw new IllegalArgumentException("No object matching provided country code exists in database.");
             }
 
             if (!(country.getCovidEntries() == null || country.getCovidEntries().isEmpty()))
@@ -464,8 +461,8 @@ public class CountryFacade
 //                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
 //                String formattedDate = outputFormatter.format(localDate);
 //                System.out.println(formattedDate);
-                if (existingDates.get(newDate.toString()) == null)
-//                if (!(existingDates.containsKey(newDate.toString())))
+//                if (existingDates.get(newDate.toString()) == null)
+                if (!(existingDates.containsKey(newDate.toString())))
                 {
                     Date date = Date.from(newDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusSeconds(86400));
                     long newConfirmed = 0;
