@@ -39,6 +39,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import utils.HttpUtils;
+import utils.RequestSender;
 
 @Path("country")
 public class CountryResource
@@ -56,71 +57,25 @@ public class CountryResource
             "dev",
             "ax2",
             EMF_Creator.Strategy.CREATE);
+    
     private static final CountryFacade FACADE = CountryFacade.getCountryFacade(EMF);
+    private static final RequestSender requestSender = RequestSender.getRequestSender();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    // https://www.baeldung.com/java-http-request
-    // for future modification can add search parameters, cookies, redirects
-    /**
-     *
-     * @param URL a String containing the target website url.
-     * @param method a String containing the request method: GET, POST, HEAD,
-     * OPTIONS, PUT, DELETE, TRACE.
-     * @param headers a Map of Strings containing all request headers as
-     * key/value pairs. Example: "Content-Type", "application/json".
-     * @param timeout an int deciding the duration (in milliseconds) before
-     * connection timeout.
-     *
-     * @throws MalformedURLException if the provided URL is invalid.
-     * @throws SocketTimeoutException if the request times out.
-     * @throws ProtocolException if the provided request method is invalid.
-     * @throws IOException if either there is an issue with the connection or
-     * there is an issue with reading the response.
-     */
-    private String sendRequest(String URL, String method, Map<String, String> headers, int timeout)
-            throws MalformedURLException, SocketTimeoutException, ProtocolException, IOException
+    private List<CovidExDTO> fetchCovidDataFromExternal(String url, String code, String method)
+            throws SocketTimeoutException, ProtocolException, IOException, NotFoundException
     {
-        URL target = new URL(URL);
-        HttpURLConnection con = (HttpURLConnection) target.openConnection();
+        Gson gson = new Gson();
+        HashMap headers = new HashMap();
+        headers.put("Accept", "application/json;charset=UTF-8");
+        String covidData = requestSender.sendRequest(url + code, method, headers, 5000);
 
-        con.setConnectTimeout(timeout);
-        con.setRequestMethod(method);
-        con.setDoOutput(false);
-
-        // adding headers
-        for (Map.Entry<String, String> map : headers.entrySet())
+        List<CovidExDTO> covidList = gson.fromJson(covidData, new TypeToken<List<CovidExDTO>>()
         {
-            con.setRequestProperty(map.getKey(), map.getValue());
-        }
+        }.getType());
 
-        // checking response code
-        int responseCode = con.getResponseCode();
-        Reader streamReader = null;
-
-        // if 200s (HTTP_OK) read the response body.
-        // if 300+ (request fail) read the error response.
-        if (responseCode > 299)
-        {
-//            streamReader = new InputStreamReader(con.getErrorStream());
-            return null;
-        }
-        else
-        {
-            streamReader = new InputStreamReader(con.getInputStream());
-        }
-
-        // build String from response
-        BufferedReader in = new BufferedReader(streamReader);
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-        while ((inputLine = in.readLine()) != null)
-        {
-            response.append(inputLine);
-        }
-        in.close();
-
-        con.disconnect();
-        return response.toString();
+        FACADE.persistAllExternalCovidEntriesForCountryByCode(covidList, code);
+        return covidList;
     }
 
     @GET
@@ -149,11 +104,43 @@ public class CountryResource
     }
 
     @GET
-    @Path("/{code}")
+    @Path("/new/{days}/{code}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAllCovidEntriesForCountryByCode(@PathParam("code") String code)
+    public String getMultipleCovidEntriesByCountry(
+            @PathParam("code") String code, @PathParam("days") int days)
     {
-        throw new UnsupportedOperationException();
+        try
+        {
+            List<CountryInDTO> covDTOs = FACADE.getMultipleInternalCovidEntriesByCountryByDays(code, days);
+
+            // checking if data exists. Has to do this before comparing dates; otherwise nullpointer
+            if (covDTOs == null || covDTOs.get(0).getDate() == null)
+            {
+                try
+                {
+                    fetchCovidDataFromExternal(covidURL, code, "GET");
+                }
+                catch (ProtocolException ex)
+                {
+                    Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                catch (SocketTimeoutException ex)
+                {
+                    return "{\"msg\": \"Request timeout. No data in database\"}";
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                covDTOs = FACADE.getMultipleInternalCovidEntriesByCountryByDays(code, days);
+            }
+            return GSON.toJson(covDTOs);
+        }
+        catch (NotFoundException ex)
+        {
+            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+        }
     }
 
     @GET
@@ -165,60 +152,54 @@ public class CountryResource
         {
             CountryInDTO covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
 
-            System.out.println(covDTO);
             // checking if data exists. Has to do this before comparing dates; otherwise nullpointer
-
-            if (covDTO.getDate() == null)
+            if (covDTO == null || covDTO.getDate() == null)
             {
-                synchronized (this)
+                try
                 {
-                    fetchCovidDataForCountryByCode(code);
-                    covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
+                    fetchCovidDataFromExternal(covidURL, code, "GET");
                 }
-
-//                return "{\"msg\": \"The database was empty. Please wait a few seconds and then call this endpoint again.\"}";
-                // this is a poor solution. Look into promises or runnables; worst case while loop
-//                synchronized (this)
-//                {
-//                    try
-//                    {
-//                        fetchCovidDataForCountryByCode(code);
-//                        System.out.println("Start" + System.nanoTime());
-//                        Thread.sleep(5000);
-////                        wait(5000);
-//                        covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
-//                        System.out.println("End" + System.nanoTime());
-//                    }
-//                    catch (InterruptedException ex)
-//                    {
-//                        Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                }
+                catch (ProtocolException ex)
+                {
+                    Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                catch (SocketTimeoutException ex)
+                {
+                    return "{\"msg\": \"Request timeout. No data in database\"}";
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
             }
 
-            System.out.println(covDTO);
             // formatting dates to prepare them for comparison
             DateTimeFormatter format = DateTimeFormatter.ofPattern("EE MMM dd HH:mm:ss 'CEST' yyyy", Locale.ENGLISH);
             LocalDate covidDate = LocalDate.parse(covDTO.getDate(), format);
             LocalDate yesterdayDate = LocalDate.now().minusDays(1);
 
-            System.out.println("Covid String: " + covidDate.toString());
-            System.out.println("Yesterday String: " + yesterdayDate.toString());
-            String equals = "No";
-            if (covidDate.isEqual(yesterdayDate))
-            {
-                equals = "Yes";
-            }
-            System.out.println("Are these the same? " + equals);
-
             // comparing dates from newest entry in DB to today's date
             if (!(covidDate.isEqual(yesterdayDate)))
             {
-                synchronized (this)
+                try
                 {
-                    fetchCovidDataForCountryByCode(code);
-                    covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
+                    fetchCovidDataFromExternal(covidURL, code, "GET");
                 }
+                catch (ProtocolException ex)
+                {
+                    Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                catch (SocketTimeoutException ex)
+                {
+                    return "{\"msg\": \"Request timeout. No data in database\"}";
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(CountryResource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                covDTO = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
             }
 
             return GSON.toJson(covDTO);
@@ -229,30 +210,13 @@ public class CountryResource
         }
     }
 
-    @GET
     @Path("/fetch/covid/{code}")
     @Produces(MediaType.APPLICATION_JSON)
     public String fetchCovidDataForCountryByCode(@PathParam("code") String code)
     {
-        Gson gson = new Gson();
         try
         {
-//            String covidData = HttpUtils.fetchData(covidURL + code);
-
-            HashMap headers = new HashMap();
-            headers.put("Accept", "application/json;charset=UTF-8");
-            String covidData = sendRequest(covidURL + code, "GET", headers, 5000);
-
-            if (covidData == null || covidData.length() < 5)
-            {
-                return "{\"msg\": \"No data from" + covidURL + code + "\"}";
-            }
-
-            List<CovidExDTO> covidList = gson.fromJson(covidData, new TypeToken<List<CovidExDTO>>()
-            {
-            }.getType());
-
-            FACADE.persistAllExternalCovidEntriesForCountryByCode(covidList, code);
+            List<CovidExDTO> covidList = fetchCovidDataFromExternal(covidURL, code, "GET");
             return GSON.toJson(covidList);
         }
         catch (NotFoundException ex)
@@ -336,7 +300,7 @@ public class CountryResource
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));
 //        rest.fetchAllCountries();
-//        rest.fetchCovidDataForCountryByCode("de");
+        rest.fetchCovidDataForCountryByCode("de");
 //        System.out.println("Result: " + rest.getNewestCovidEntryForCountryByCode("de"));
 //        rest.getNewestCovidEntryForCountryByCode("no");
 
