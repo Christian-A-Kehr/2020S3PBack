@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -53,7 +54,7 @@ public class CountryFacade
      *
      * getAllInternalCovidEntriesForCountryByCode
      *
-     * getInternalCovidEntryForCountryByCodeByDate
+     * getMultipleInternalCovidEntriesByCountryByDays
      *
      * persistAllExternalCountries
      *
@@ -178,48 +179,50 @@ public class CountryFacade
      *
      * author Brandstrup
      *
-     * @param code
-     * @return
-     * @throws NotFoundException
+     * @param code the alpha2code of the country you are attempting to retrieve 
+     * from the database.
+     * @return null if no Country exists with provided code; the Country data 
+     * only if no Covid data exists for country; else a combined Country and 
+     * Covid DTO.
      */
-    public CountryInDTO getNewestInternalCovidEntryForCountryByCode(String code) throws NotFoundException
+    public CountryInDTO getNewestInternalCovidEntryForCountryByCode(String code)
     {
         EntityManager em = getEntityManager();
         try
         {
-            CountryData country;
-            TypedQuery<CountryData> query = em.createQuery("SELECT cou FROM CountryData cou "
-                    + "WHERE cou.countryCode = :code", CountryData.class)
+            CountryInDTO result = null;
+            CountryData country = null;
+            
+            TypedQuery<CountryData> query = em.createQuery("SELECT country FROM CountryData country "
+                    + "WHERE country.countryCode = :code", CountryData.class)
                     .setParameter("code", code);
             country = query.getSingleResult();
 
-            if (country == null || country.getCountryCode().length() == 0)
+            if (country == null || country.getCountryCode().length() < 2)
             {
-                throw new NotFoundException("No object matching provided id exists in database.");
+//                throw new NotFoundException("No object matching provided id exists in database.");
+                return result;
             }
-//            System.out.println("Fetched country entity: " + country.toString());
-            if (!(country.getCovidEntries().isEmpty()))
+            else if (!(country.getCovidEntries().isEmpty()))
             {
+                // finds the highest value in a HashSet by date and returns it
                 HashSet<CovidData> covidEntries = new HashSet<>(country.getCovidEntries());
                 CovidData newestEntry = Collections.max(covidEntries, (CovidData o1, CovidData o2) ->
                 {
                     return o1.getDate().compareTo(o2.getDate());
                 });
-//                System.out.println("Newest covid entity from country: " + newestEntry.toString());
                 long newestCovidId = newestEntry.getId();
 
                 CovidData covid = em.find(CovidData.class, newestCovidId);
-//                System.out.println("Newest covid entity from database: " + covid.toString());
-
-                return new CountryInDTO(country, covid);
+                result = new CountryInDTO(country, covid);
+                return result;
             }
-
-            return new CountryInDTO(country);
+            else
+            {
+                result = new CountryInDTO(country);
+                return result;
+            }
         }
-//        catch (IllegalArgumentException ex)
-//        {
-//            throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-//        }
         finally
         {
             em.close();
@@ -236,12 +239,81 @@ public class CountryFacade
     }
 
     /**
+     *
      * author Brandstrup
      *
+     * @param code the alpha2code of the country you are attempting to retrieve 
+     * from the database.
+     * @param days the number of days you want to retrieve since today.
+     * @return null if no Country exists with provided code; the Country data 
+     * only if no Covid data exists for country; else a List of combined Country 
+     * and Covid DTOs.
      */
-    public void getInternalCovidEntryForCountryByCodeByDate()
+    public List<CountryInDTO> getMultipleInternalCovidEntriesByCountryByDays(String code, int days)
     {
-        throw new UnsupportedOperationException();
+        EntityManager em = getEntityManager();
+        try
+        {
+            List<CountryInDTO> result = null;
+            CountryData country = null;
+            List<CovidData> covidList = null;
+            
+            TypedQuery<CountryData> countryQuery 
+                    = em.createQuery("SELECT country FROM CountryData country "
+                    + "WHERE country.countryCode = :code", CountryData.class)
+                    .setParameter("code", code);
+            country = countryQuery.getSingleResult();
+
+            if (country == null || country.getCountryCode().length() < 2)
+            {
+//                throw new NotFoundException("No object matching provided id exists in database.");
+                return result;
+            }
+            else if (!(country.getCovidEntries().isEmpty()))
+            {
+                // sorts an ArrayList by date and returns the most recent entries
+                List<CovidData> covidEntries = new ArrayList<>(country.getCovidEntries());
+                covidEntries.sort((CovidData o1, CovidData o2) ->
+                {
+                    return o1.getDate().compareTo(o2.getDate());
+                });
+                
+                // creates a List<String> containing the ids of the entries we 
+                // want to retrieve from the database.
+                
+                String[] idStrings = new String[days];
+                for (int i = 0; i < days; i++)
+                {
+                    idStrings[i] = Long.toString(covidEntries.get(i).getId());
+                }
+                List<String> covidIds = Arrays.asList(idStrings);
+                
+                TypedQuery<CovidData> covidQuery
+                    = em.createQuery("SELECT covid FROM CovidData covid "
+                            + "WHERE covid.id IN (:ids)", CovidData.class)
+                        .setParameter("ids", covidIds);
+                covidList = covidQuery.getResultList();
+                
+                for (CovidData covid : covidList)
+                {
+                    result.add(new CountryInDTO(country, covid));
+                }
+            
+                return result;
+            }
+            else
+            {
+                for (int i = 0; i < days; i++)
+                {
+                    result.add(new CountryInDTO(country));
+                }
+                return result;
+            }
+        }
+        finally
+        {
+            em.close();
+        }
     }
 
     /**
@@ -280,7 +352,9 @@ public class CountryFacade
             for (CountryExDTO newCountry : DTOList)
             {
                 String newCountryCode = newCountry.getAlpha2Code().toLowerCase();
-                if (!(existingCountryMap.containsKey(newCountryCode)))
+                
+                if (existingCountryMap.get(newCountryCode) == null)
+//                if (!(existingCountryMap.containsKey(newCountryCode)))
                 {
                     CountryData cd = new CountryData(newCountry.getName(), newCountry.getAlpha2Code(), newCountry.getPopulation(), null, null);
                     em.persist(cd);
@@ -359,7 +433,7 @@ public class CountryFacade
                 filteredDTOList.add(covidExDTO);
             }
         }
-        
+
         EntityManager em = emf.createEntityManager();
         try
         {
@@ -390,8 +464,8 @@ public class CountryFacade
 //                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
 //                String formattedDate = outputFormatter.format(localDate);
 //                System.out.println(formattedDate);
-
-                if (!(existingDates.containsKey(newDate.toString())))
+                if (existingDates.get(newDate.toString()) == null)
+//                if (!(existingDates.containsKey(newDate.toString())))
                 {
                     Date date = Date.from(newDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusSeconds(86400));
                     long newConfirmed = 0;
