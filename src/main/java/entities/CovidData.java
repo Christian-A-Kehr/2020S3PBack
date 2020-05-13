@@ -77,14 +77,14 @@ public class CovidData implements Serializable
     private Date convertToDateViaInstant(LocalDate dateToConvert)
     {
         return java.util.Date.from(dateToConvert.atStartOfDay()
-                .atZone(ZoneId.systemDefault())
-                .toInstant().plusSeconds(86400));
+                .atZone(ZoneId.of("UTC"))
+                .toInstant());
     }
 
     private LocalDateTime convertToLocalDateTimeViaInstant(Date dateToConvert)
     {
         return dateToConvert.toInstant()
-                .atZone(ZoneId.systemDefault())
+                .atZone(ZoneId.of("UTC"))
                 .toLocalDateTime();
     }
 
