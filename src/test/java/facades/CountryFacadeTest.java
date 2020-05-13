@@ -5,12 +5,17 @@
  */
 package facades;
 
+import dtos.CountryBasicInDTO;
 import dtos.CountryExDTO;
+import dtos.CountryInDTO;
+import dtos.CovidExDTO;
 import entities.CountryData;
+import entities.CovidData;
 import utils.EMF_Creator;
 import entities.RenameMe;
 import errorhandling.DatabaseException;
 import errorhandling.NotFoundException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
@@ -103,7 +108,7 @@ public class CountryFacadeTest
 
     // TODO: Delete or change this method 
     @Test
-    public void testAFacadeMethod()
+    public void testGetInternalCountryCount()
     {
         long ex = 2;
         long count = facade.getInternalCountryCount();
@@ -114,7 +119,7 @@ public class CountryFacadeTest
      * @throws NotFoundException 
      */
     @Test
-    public void persisteExCountry() throws NotFoundException
+    public void testPersistExternalCountry() throws NotFoundException
     {
         try
         {
@@ -134,7 +139,7 @@ public class CountryFacadeTest
      * @throws NotFoundException 
      */
     @Test
-    public void getCountryFromDatabaseByCountrycode() throws NotFoundException
+    public void testGetInternalCountryByCode() throws NotFoundException
     {
         String expt = cd2.getCountryName();
         String lookingForCC = cd2.getCountryCode();
@@ -142,4 +147,89 @@ public class CountryFacadeTest
         System.out.println("getCountryFromDatabaseByCountrycode: expt =" + expt + " res= " + res);
         assertEquals(expt, res, "Expects LalaLand");
     }
+
+//    /**
+//     * Test of getAllInternalCountries method, of class CountryFacade.
+//     */
+//    @Test
+//    public void testGetAllInternalCountries() throws Exception
+//    {
+//        System.out.println("getAllInternalCountries");
+//        CountryFacade instance = null;
+//        List<CountryBasicInDTO> expResult = null;
+//        List<CountryBasicInDTO> result = instance.getAllInternalCountries();
+//        assertEquals(expResult, result);
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
+
+//    /**
+//     * Test of getNewestInternalCovidEntryForCountryByCode method, of class CountryFacade.
+//     */
+//    @Test
+//    public void testGetNewestInternalCovidEntryForCountryByCode()
+//    {
+//        String code = "";
+//        CountryFacade instance = null;
+//        CountryInDTO expResult = null;
+//        CountryInDTO result = instance.getNewestInternalCovidEntryForCountryByCode(code);
+//        assertEquals(expResult, result);
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
+
+//    /**
+//     * Test of getAllInternalCovidEntriesForCountryByCode method, of class CountryFacade.
+//     */
+//    @Test
+//    public void testGetAllInternalCovidEntriesForCountryByCode()
+//    {
+//        System.out.println("getAllInternalCovidEntriesForCountryByCode");
+//        CountryFacade instance = null;
+//        instance.getAllInternalCovidEntriesForCountryByCode();
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
+
+//    /**
+//     * Test of getInternalCovidEntryForCountryByCodeByDate method, of class CountryFacade.
+//     */
+//    @Test
+//    public void getMultipleInternalCovidEntriesByCountryByDays()
+//    {
+//        System.out.println("getInternalCovidEntryForCountryByCodeByDate");
+//        CountryFacade instance = null;
+//        instance.getInternalCovidEntryForCountryByCodeByDate();
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
+
+//    /**
+//     * Test of persistAllExternalCountries method, of class CountryFacade.
+//     */
+//    @Test
+//    public void testPersistAllExternalCountries() throws Exception
+//    {
+//        System.out.println("persistAllExternalCountries");
+//        List<CountryExDTO> DTOList = null;
+//        CountryFacade instance = null;
+//        instance.persistAllExternalCountries(DTOList);
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
+//
+//    /**
+//     * Test of persistAllExternalCovidEntriesForCountryByCode method, of class CountryFacade.
+//     */
+//    @Test
+//    public void testPersistAllExternalCovidEntriesForCountryByCode() throws Exception
+//    {
+//        System.out.println("persistAllExternalCovidEntriesForCountryByCode");
+//        List<CovidExDTO> exDTOList = null;
+//        String code = "";
+//        CountryFacade instance = null;
+//        instance.persistAllExternalCovidEntriesForCountryByCode(exDTOList, code);
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
 }
