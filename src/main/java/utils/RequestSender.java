@@ -51,11 +51,12 @@ public class RequestSender
      * @param method a String containing the request method: GET, POST, HEAD,
      * OPTIONS, PUT, DELETE, TRACE.
      * @param headers a Map of Strings containing all request headers as
-     * key/value pairs. Example: "Content-Type", "application/json".
+     * key/value pairs. Example: "Content-Type", "application/json" or 
+     * "Accept", "application/json".
      * @param timeout an int deciding the duration (in milliseconds) before
      * connection timeout.
      *
-     * @return a response as a String.
+     * @return a Response as a String.
      *
      * @throws MalformedURLException if the provided URL is invalid.
      * @throws SocketTimeoutException if the request times out.
@@ -63,38 +64,16 @@ public class RequestSender
      * @throws IOException if either there is an issue with the connection or
      * there is an issue with reading the response. Will also be thrown if the
      * request times out (SocketTimeoutException).
-     * @throws IllegalArgumentException if
      */
     public String sendRequest(String URL, String method, Map<String, String> headers, int timeout)
-            throws MalformedURLException, SocketTimeoutException, ProtocolException, IOException, IllegalArgumentException
+            throws MalformedURLException, SocketTimeoutException, ProtocolException, IOException
     {
         URL target = new URL(URL);
         HttpURLConnection con = (HttpURLConnection) target.openConnection();
 
-        String[] possibleMethods =
-        {
-            "GET", "POST", "PUT", "DELETE", "TRACE", "OPTIONS", "HEAD"
-        };
-
-        boolean isNotValidMethod = true;
-        int possibleMethodsLength = possibleMethods.length;
-        int iterator = 0;
-        
-        while(isNotValidMethod)
-        {
-            if (iterator == possibleMethodsLength)
-            {
-                throw new IllegalArgumentException("Illegal method provided.");
-            }
-            else if (method.equalsIgnoreCase(possibleMethods[iterator]))
-            {
-                isNotValidMethod = false;
-            }
-            iterator++;
-        }
-        
         con.setConnectTimeout(timeout);
         con.setRequestMethod(method);
+        // set to true if you want to allow parameters
         con.setDoOutput(false);
 
         if (headers.isEmpty())
