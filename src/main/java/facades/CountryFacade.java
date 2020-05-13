@@ -8,6 +8,7 @@ import entities.CountryData;
 import entities.CovidData;
 import errorhandling.DatabaseException;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -268,16 +269,16 @@ public class CountryFacade
             }
             else if (!(country.getCovidEntries().isEmpty()))
             {
+                result = new ArrayList<>();
                 // sorts an ArrayList by date and returns the most recent entries
                 List<CovidData> covidEntries = new ArrayList<>(country.getCovidEntries());
                 covidEntries.sort((CovidData o1, CovidData o2) ->
                 {
-                    return o1.getDate().compareTo(o2.getDate());
+                    return o2.getDate().compareTo(o1.getDate());
                 });
                 
                 // creates a List<String> containing the ids of the entries we 
                 // want to retrieve from the database.
-                
                 String[] idStrings = new String[days];
                 for (int i = 0; i < days; i++)
                 {
@@ -287,7 +288,7 @@ public class CountryFacade
                 
                 TypedQuery<CovidData> covidQuery
                     = em.createQuery("SELECT covid FROM CovidData covid "
-                            + "WHERE covid.id IN (:ids)", CovidData.class)
+                            + "WHERE covid.id IN :ids", CovidData.class)
                         .setParameter("ids", covidIds);
                 covidList = covidQuery.getResultList();
                 
@@ -300,6 +301,7 @@ public class CountryFacade
             }
             else
             {
+                result = new ArrayList<>();
                 for (int i = 0; i < days; i++)
                 {
                     result.add(new CountryInDTO(country));
@@ -458,13 +460,9 @@ public class CountryFacade
             for (CovidExDTO o : filteredDTOList)
             {
                 LocalDate newDate = LocalDate.parse(o.getDate(), inputFormatter);
-//                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
-//                String formattedDate = outputFormatter.format(localDate);
-//                System.out.println(formattedDate);
-//                if (existingDates.get(newDate.toString()) == null)
-                if (!(existingDates.containsKey(newDate.toString())))
+                if (existingDates.get(newDate.toString()) == null)
                 {
-                    Date date = Date.from(newDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusSeconds(86400));
+                    Date date = Date.from(newDate.atStartOfDay(ZoneId.of("UTC")).toInstant());
                     long newConfirmed = 0;
                     long newRecovered = 0;
                     long newDeaths = 0;
@@ -473,7 +471,7 @@ public class CountryFacade
                             newRecovered, o.getRecovered(), newDeaths, o.getDeaths());
                     country.addCovidEntry(covid);
                     em.persist(covid);
-                    System.out.println("Entry with date --> " + newDate.toString() + " <-- has been persisted");
+                    System.out.println("Entry with date --> " + newDate.toString() + " <-- has been persisted for country: " + covid.getCountry().getCountryName());
                 }
             }
             em.merge(country);
