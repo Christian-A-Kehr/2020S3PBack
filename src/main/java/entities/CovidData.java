@@ -29,15 +29,8 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @NamedQuery(name = "CovidData.deleteAllRows", query = "DELETE from CovidData")
-@Table(name = "covidEntries"
-//        ,
-//         uniqueConstraints =
-//        {
-//            @UniqueConstraint(columnNames =
-//            {
-//                "DATE", "COUNTRY_CODE"
-//    })
-//        }
+@Table(name = "covidEntries",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"DATE", "COUNTRY_CODE"})}
 )
 public class CovidData implements Serializable
 {
@@ -84,14 +77,14 @@ public class CovidData implements Serializable
     private Date convertToDateViaInstant(LocalDate dateToConvert)
     {
         return java.util.Date.from(dateToConvert.atStartOfDay()
-                .atZone(ZoneId.systemDefault())
-                .toInstant().plusSeconds(86400));
+                .atZone(ZoneId.of("UTC"))
+                .toInstant());
     }
 
     private LocalDateTime convertToLocalDateTimeViaInstant(Date dateToConvert)
     {
         return dateToConvert.toInstant()
-                .atZone(ZoneId.systemDefault())
+                .atZone(ZoneId.of("UTC"))
                 .toLocalDateTime();
     }
 
@@ -243,18 +236,17 @@ public class CovidData implements Serializable
     @Override
     public String toString()
     {
-        return "CovidData{" 
-                + "id=" + id 
+        return "CovidData{"
+                + "id=" + id
                 + ", date=" + this.getLocalDate().toString()
                 + ", country=" + country.getCountryName()
-                + ", newConfirmedInfected=" + newConfirmedInfected 
-                + ", totalConfirmedInfected=" + totalConfirmedInfected 
-                + ", newRecovered=" + newRecovered 
-                + ", totalRecovered=" + totalRecovered 
-                + ", newDeaths=" + newDeaths 
-                + ", totalDeaths=" + totalDeaths 
+                + ", newConfirmedInfected=" + newConfirmedInfected
+                + ", totalConfirmedInfected=" + totalConfirmedInfected
+                + ", newRecovered=" + newRecovered
+                + ", totalRecovered=" + totalRecovered
+                + ", newDeaths=" + newDeaths
+                + ", totalDeaths=" + totalDeaths
                 + '}';
     }
 
-    
 }

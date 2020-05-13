@@ -7,11 +7,12 @@ import dtos.CovidExDTO;
 import entities.CountryData;
 import entities.CovidData;
 import errorhandling.DatabaseException;
-import errorhandling.NotFoundException;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -53,7 +54,7 @@ public class CountryFacade
      *
      * getAllInternalCovidEntriesForCountryByCode
      *
-     * getInternalCovidEntryForCountryByCodeByDate
+     * getMultipleInternalCovidEntriesByCountryByDays
      *
      * persistAllExternalCountries
      *
@@ -109,9 +110,9 @@ public class CountryFacade
      *
      * @param code
      * @return
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      */
-    public CountryData getInternalCountryByCode(String code) throws NotFoundException
+    public CountryData getInternalCountryByCode(String code) throws IllegalArgumentException
     {
         EntityManager em = emf.createEntityManager();
         try
@@ -124,7 +125,7 @@ public class CountryFacade
 
             if (country == null)
             {
-                throw new NotFoundException("No object matching provided country code exists in database.");
+                throw new IllegalArgumentException("No object matching provided country code exists in database.");
             }
 
             return country;
@@ -142,7 +143,7 @@ public class CountryFacade
      *
      * @return a List of DTO objects.
      */
-    public List<CountryBasicInDTO> getAllInternalCountries() throws NotFoundException
+    public List<CountryBasicInDTO> getAllInternalCountries() throws IllegalArgumentException
     {
         EntityManager em = getEntityManager();
         try
@@ -153,12 +154,12 @@ public class CountryFacade
 
             if (query.getResultList() == null)
             {
-                throw new NotFoundException("No objects retrieved from database.");
+                throw new IllegalArgumentException("No objects retrieved from database.");
             }
 
             if (query.getResultList().isEmpty())
             {
-                throw new NotFoundException("Database is empty.");
+                throw new IllegalArgumentException("Database is empty.");
             }
 
             query.getResultList().forEach((o) ->
@@ -178,49 +179,49 @@ public class CountryFacade
      *
      * author Brandstrup
      *
-     * @param code
-     * @return
-     * @throws NotFoundException
+     * @param code the alpha2code of the country you are attempting to retrieve 
+     * from the database.
+     * @return null if no Country exists with provided code; the Country data 
+     * only if no Covid data exists for country; else a combined Country and 
+     * Covid DTO.
      */
-    public CountryInDTO getNewestInternalCovidEntryForCountryByCode(String code) throws NotFoundException
+    public CountryInDTO getNewestInternalCovidEntryForCountryByCode(String code)
     {
         EntityManager em = getEntityManager();
         try
         {
-            CountryData country;
-            TypedQuery<CountryData> query = em.createQuery("SELECT cou FROM CountryData cou "
-                    + "WHERE cou.countryCode = :code", CountryData.class)
+            CountryInDTO result = null;
+            CountryData country = null;
+            
+            TypedQuery<CountryData> query = em.createQuery("SELECT country FROM CountryData country "
+                    + "WHERE country.countryCode = :code", CountryData.class)
                     .setParameter("code", code);
             country = query.getSingleResult();
 
-            if (country == null || country.getCountryCode().length() == 0)
+            if (country == null || country.getCountryCode().length() < 2)
             {
-                throw new NotFoundException("No object matching provided id exists in database.");
+                return result;
             }
-            System.out.println("Fetched country entity: " + country.toString());
-            if (!(country.getCovidEntries().isEmpty()))
+            else if (!(country.getCovidEntries().isEmpty()))
             {
+                // finds the highest value in a HashSet by date and returns it
                 HashSet<CovidData> covidEntries = new HashSet<>(country.getCovidEntries());
                 CovidData newestEntry = Collections.max(covidEntries, (CovidData o1, CovidData o2) ->
                 {
                     return o1.getDate().compareTo(o2.getDate());
                 });
-                System.out.println("Newest covid entity from country: " + newestEntry.toString());
                 long newestCovidId = newestEntry.getId();
-                // previous 6 lines really need testing!
 
                 CovidData covid = em.find(CovidData.class, newestCovidId);
-                System.out.println("Newest covid entity from database: " + covid.toString());
-
-                return new CountryInDTO(country, covid);
+                result = new CountryInDTO(country, covid);
+                return result;
             }
-
-            return new CountryInDTO(country);
+            else
+            {
+                result = new CountryInDTO(country);
+                return result;
+            }
         }
-//        catch (IllegalArgumentException ex)
-//        {
-//            throw new NotFoundException("No object matching provided id exists in database. IllegalArgumentException.");
-//        }
         finally
         {
             em.close();
@@ -237,26 +238,95 @@ public class CountryFacade
     }
 
     /**
+     *
      * author Brandstrup
      *
+     * @param code the alpha2code of the country you are attempting to retrieve 
+     * from the database.
+     * @param days the number of days you want to retrieve since today.
+     * @return null if no Country exists with provided code; the Country data 
+     * only if no Covid data exists for country; else a List of combined Country 
+     * and Covid DTOs.
      */
-    public void getInternalCovidEntryForCountryByCodeByDate()
+    public List<CountryInDTO> getMultipleInternalCovidEntriesByCountryByDays(String code, int days)
     {
-        throw new UnsupportedOperationException();
+        EntityManager em = getEntityManager();
+        try
+        {
+            List<CountryInDTO> result = null;
+            CountryData country = null;
+            List<CovidData> covidList = null;
+            
+            TypedQuery<CountryData> countryQuery 
+                    = em.createQuery("SELECT country FROM CountryData country "
+                    + "WHERE country.countryCode = :code", CountryData.class)
+                    .setParameter("code", code);
+            country = countryQuery.getSingleResult();
+
+            if (country == null || country.getCountryCode().length() < 2)
+            {
+                return result;
+            }
+            else if (!(country.getCovidEntries().isEmpty()))
+            {
+                result = new ArrayList<>();
+                // sorts an ArrayList by date and returns the most recent entries
+                List<CovidData> covidEntries = new ArrayList<>(country.getCovidEntries());
+                covidEntries.sort((CovidData o1, CovidData o2) ->
+                {
+                    return o2.getDate().compareTo(o1.getDate());
+                });
+                
+                // creates a List<String> containing the ids of the entries we 
+                // want to retrieve from the database.
+                String[] idStrings = new String[days];
+                for (int i = 0; i < days; i++)
+                {
+                    idStrings[i] = Long.toString(covidEntries.get(i).getId());
+                }
+                List<String> covidIds = Arrays.asList(idStrings);
+                
+                TypedQuery<CovidData> covidQuery
+                    = em.createQuery("SELECT covid FROM CovidData covid "
+                            + "WHERE covid.id IN :ids", CovidData.class)
+                        .setParameter("ids", covidIds);
+                covidList = covidQuery.getResultList();
+                
+                for (CovidData covid : covidList)
+                {
+                    result.add(new CountryInDTO(country, covid));
+                }
+            
+                return result;
+            }
+            else
+            {
+                result = new ArrayList<>();
+                for (int i = 0; i < days; i++)
+                {
+                    result.add(new CountryInDTO(country));
+                }
+                return result;
+            }
+        }
+        finally
+        {
+            em.close();
+        }
     }
 
     /**
      * author Christian
      *
      * @param DTOList
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      * @throws DatabaseException
      */
-    public void persistAllExternalCountries(List<CountryExDTO> DTOList) throws NotFoundException, DatabaseException
+    public void persistAllExternalCountries(List<CountryExDTO> DTOList) throws IllegalArgumentException, DatabaseException
     {
         if (DTOList.isEmpty())
         {
-            throw new NotFoundException("No objects retrieved from http://restcountries.eu/rest/v1.");
+            throw new IllegalArgumentException("No objects retrieved from http://restcountries.eu/rest/v1.");
         }
 
         HashMap existingCountryMap = new HashMap<String, String>();
@@ -281,7 +351,9 @@ public class CountryFacade
             for (CountryExDTO newCountry : DTOList)
             {
                 String newCountryCode = newCountry.getAlpha2Code().toLowerCase();
-                if (!(existingCountryMap.containsKey(newCountryCode)))
+                
+                if (existingCountryMap.get(newCountryCode) == null)
+//                if (!(existingCountryMap.containsKey(newCountryCode)))
                 {
                     CountryData cd = new CountryData(newCountry.getName(), newCountry.getAlpha2Code(), newCountry.getPopulation(), null, null);
                     em.persist(cd);
@@ -301,16 +373,16 @@ public class CountryFacade
      *
      * @param DTO
      * @return
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      * @throws DatabaseException if an identical object already exists in the
      * database
      */
-    public CountryData persistExternalCountry(CountryExDTO DTO) throws NotFoundException, DatabaseException
+    public CountryData persistExternalCountry(CountryExDTO DTO) throws IllegalArgumentException, DatabaseException
     {
         // this guard makes no sense. There will always be a DTO otherwise you won't be able to call the method
         if (DTO == null)
         {
-            throw new NotFoundException("No objects passed");
+            throw new IllegalArgumentException("No objects passed");
         }
 
         CountryData cd;
@@ -339,20 +411,27 @@ public class CountryFacade
      *
      * @param exDTOList
      * @param code
-     * @throws NotFoundException
+     * @throws IllegalArgumentException
      */
-    public void persistAllExternalCovidEntriesForCountryByCode(List<CovidExDTO> exDTOList, String code) throws NotFoundException
+    public void persistAllExternalCovidEntriesForCountryByCode(List<CovidExDTO> exDTOList, String code) throws IllegalArgumentException
     {
         if (exDTOList.isEmpty())
         {
-            throw new NotFoundException("No objects retrieved from https://api.covid19api.com/total/dayone/country/" + code + ".");
+            throw new IllegalArgumentException("No objects retrieved from https://api.covid19api.com/total/dayone/country/" + code + ".");
         }
 
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
-
+        List<CovidExDTO> filteredDTOList = new ArrayList<>();
         CountryData country;
-        HashMap existingDatesMap = new HashMap<String, String>();
-        List<LocalDate> existingDates = new ArrayList<>();
+        HashMap existingDates = new HashMap<String, String>();
+
+        for (CovidExDTO covidExDTO : exDTOList)
+        {
+            if (covidExDTO.getProvince().isEmpty())
+            {
+                filteredDTOList.add(covidExDTO);
+            }
+        }
 
         EntityManager em = emf.createEntityManager();
         try
@@ -366,7 +445,7 @@ public class CountryFacade
 
             if (country == null)
             {
-                throw new NotFoundException("No object matching provided country code exists in database.");
+                throw new IllegalArgumentException("No object matching provided country code exists in database.");
             }
 
             if (!(country.getCovidEntries() == null || country.getCovidEntries().isEmpty()))
@@ -374,20 +453,16 @@ public class CountryFacade
                 for (CovidData covid : country.getCovidEntries())
                 {
                     String existingDate = covid.getLocalDate().toLocalDate().toString();
-                    existingDatesMap.put(existingDate, null);
+                    existingDates.put(existingDate, null);
                 }
             }
 
-            for (CovidExDTO o : exDTOList)
+            for (CovidExDTO o : filteredDTOList)
             {
                 LocalDate newDate = LocalDate.parse(o.getDate(), inputFormatter);
-//                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH);
-//                String formattedDate = outputFormatter.format(localDate);
-//                System.out.println(formattedDate);
-
-                if (!(existingDatesMap.containsKey(newDate.toString())))
+                if (existingDates.get(newDate.toString()) == null)
                 {
-                    Date date = Date.from(newDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusSeconds(86400));
+                    Date date = Date.from(newDate.atStartOfDay(ZoneId.of("UTC")).toInstant());
                     long newConfirmed = 0;
                     long newRecovered = 0;
                     long newDeaths = 0;
@@ -396,7 +471,7 @@ public class CountryFacade
                             newRecovered, o.getRecovered(), newDeaths, o.getDeaths());
                     country.addCovidEntry(covid);
                     em.persist(covid);
-                    System.out.println("Entry with date --> " + newDate.toString() + " <-- has been persisted");
+                    System.out.println("Entry with date --> " + newDate.toString() + " <-- has been persisted for country: " + covid.getCountry().getCountryName());
                 }
             }
             em.merge(country);
