@@ -452,26 +452,36 @@ public class CountryFacade
             {
                 for (CovidData covid : country.getCovidEntries())
                 {
-                    String existingDate = covid.getLocalDate().toLocalDate().toString();
-                    existingDates.put(existingDate, null);
+                    String existingDate = covid.getLocalDate().toLocalDate().plusDays(0).toString();
+                    existingDates.put(existingDate, existingDate);
                 }
             }
 
-            for (CovidExDTO o : filteredDTOList)
+            for (CovidExDTO fetchedCovid : filteredDTOList)
             {
-                LocalDate newDate = LocalDate.parse(o.getDate(), inputFormatter);
-                if (existingDates.get(newDate.toString()) == null)
+                LocalDate newDate = LocalDate.parse(fetchedCovid.getDate(), inputFormatter).minusDays(1);
+                System.out.println("\nNew date to compare to: " + newDate.plusDays(0).toString() + " <-- should not be persisted if equal to database entry.");
+
+                if (existingDates.get(newDate.plusDays(0).toString()) == null)
                 {
+                    System.out.println("Database entry doesn't exist.");
+                    // when persisting to database, for some reason persists as one day earlier than actual day, thus +1
+                    newDate = newDate.plusDays(1);
                     Date date = Date.from(newDate.atStartOfDay(ZoneId.of("UTC")).toInstant());
                     long newConfirmed = 0;
                     long newRecovered = 0;
                     long newDeaths = 0;
 
-                    CovidData covid = new CovidData(date, null, newConfirmed, o.getConfirmed(),
-                            newRecovered, o.getRecovered(), newDeaths, o.getDeaths());
-                    country.addCovidEntry(covid);
-                    em.persist(covid);
-                    System.out.println("Entry with date --> " + newDate.toString() + " <-- has been persisted for country: " + covid.getCountry().getCountryName());
+                    CovidData retrievedCovid = new CovidData(date, null, newConfirmed, fetchedCovid.getConfirmed(),
+                            newRecovered, fetchedCovid.getRecovered(), newDeaths, fetchedCovid.getDeaths());
+                    country.addCovidEntry(retrievedCovid);
+                    em.persist(retrievedCovid);
+                    System.out.println("Entry with date --> " + newDate.minusDays(1).toString() 
+                            + " <-- has been persisted for country: " + retrievedCovid.getCountry().getCountryName() + "\n");
+                }
+                else
+                {
+                    System.out.println("Existing date to compare to: " + existingDates.get(newDate.toString()));
                 }
             }
             em.merge(country);

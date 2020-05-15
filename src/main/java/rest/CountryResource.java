@@ -127,14 +127,18 @@ public class CountryResource
 
             // formatting dates to prepare them for comparison
             DateTimeFormatter format = DateTimeFormatter.ofPattern("EE MMM dd HH:mm:ss 'CEST' yyyy", Locale.ENGLISH);
-            LocalDate covidDate = LocalDate.parse(result.getDate(), format);
+            // database date shenanigans requires me to substract one from result to get correct day
+            LocalDate covidDate = LocalDate.parse(result.getDate(), format).minusDays(0);
             LocalDate yesterdayDate = LocalDate.now().minusDays(1);
+            System.out.println("Last db date: " + covidDate.toString());
+            System.out.println("Yesterday date: " + yesterdayDate.toString());
 
             // comparing dates from newest entry in DB to today's date
             if (!(covidDate.isEqual(yesterdayDate)))
             {
                 try
                 {
+                    System.out.println("Updating db?: True");
                     fetchCovidDataFromExternal(covidURL, code);
                 }
                 catch (ProtocolException ex)
