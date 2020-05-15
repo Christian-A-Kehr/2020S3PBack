@@ -93,48 +93,6 @@ public class CountryResource
     }
 
     @GET
-    @Path("/new/{days}/{code}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getMultipleCovidEntriesByCountry(
-            @PathParam("code") String code, @PathParam("days") int days)
-    {
-        try
-        {
-            List<CountryInDTO> covDTOs = FACADE.getMultipleInternalCovidEntriesByCountryByDays(code, days);
-
-            // checking if data exists. Has to do this before comparing dates; otherwise nullpointer
-            if (covDTOs == null || covDTOs.get(0).getDate() == null)
-            {
-                try
-                {
-                    fetchCovidDataFromExternal(covidURL, code);
-                }
-                catch (ProtocolException ex)
-                {
-                    System.out.println(Arrays.toString(ex.getStackTrace()));
-                }
-                catch (SocketTimeoutException ex)
-                {
-                    System.out.println(Arrays.toString(ex.getStackTrace()));
-                    return "{\"msg\": \"Request timeout. No data in database\"}";
-                }
-                catch (IOException ex)
-                {
-                    System.out.println(Arrays.toString(ex.getStackTrace()));
-                }
-
-                covDTOs = FACADE.getMultipleInternalCovidEntriesByCountryByDays(code, days);
-            }
-            return GSON.toJson(covDTOs);
-        }
-        catch (IllegalArgumentException ex)
-        {
-            System.out.println(Arrays.toString(ex.getStackTrace()));
-            return "{\"msg\": \"" + ex.getMessage() + "\"}";
-        }
-    }
-
-    @GET
     @Path("/new/{code}")
     @Produces(MediaType.APPLICATION_JSON)
     public String getNewestCovidEntryForCountryByCode(@PathParam("code") String code)
@@ -200,7 +158,59 @@ public class CountryResource
         }
         catch (IllegalArgumentException ex)
         {
-            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+            CountryInDTO result = new CountryInDTO(FACADE.getInternalCountryByCode(code));
+            return GSON.toJson(result);
+//            return "{\"msg\": \"" + ex.getMessage() + "\"}";
+        }
+    }
+    
+    @GET
+    @Path("/new/{days}/{code}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getMultipleCovidEntriesByCountry(
+            @PathParam("code") String code, @PathParam("days") int days)
+    {
+        try
+        {
+            List<CountryInDTO> covDTOs = FACADE.getMultipleInternalCovidEntriesByCountryByDays(code, days);
+
+            // checking if data exists. Has to do this before comparing dates; otherwise nullpointer
+            if (covDTOs == null || covDTOs.get(0).getDate() == null)
+            {
+                try
+                {
+                    fetchCovidDataFromExternal(covidURL, code);
+                }
+                catch (ProtocolException ex)
+                {
+                    System.out.println(Arrays.toString(ex.getStackTrace()));
+                }
+                catch (SocketTimeoutException ex)
+                {
+                    System.out.println(Arrays.toString(ex.getStackTrace()));
+                    return "{\"msg\": \"Request timeout. No data in database\"}";
+                }
+                catch (IOException ex)
+                {
+                    System.out.println(Arrays.toString(ex.getStackTrace()));
+                }
+
+                covDTOs = FACADE.getMultipleInternalCovidEntriesByCountryByDays(code, days);
+            }
+            return GSON.toJson(covDTOs);
+        }
+        // catches if there is no data to pass along to the facade (fetchCovidDataFromExternal(covidURL, code);) when covidURL is wrong
+        catch (IllegalArgumentException ex)
+        {
+            CountryInDTO result = new CountryInDTO(FACADE.getInternalCountryByCode(code));
+            List<CountryInDTO> covDTOs = new ArrayList<>();
+            for (int i = 0; i < days; i++)
+            {
+                covDTOs.add(result);
+            }
+            
+            return GSON.toJson(covDTOs);
+//            return "{\"msg\": \"" + ex.getMessage() + "\"}";
         }
     }
 
@@ -308,9 +318,9 @@ public class CountryResource
         CountryResource rest = new CountryResource();
 //        System.out.println(rest.fetchCountryByCode("se"));
 //        rest.fetchAllCountries();
-        rest.fetchCovidDataForCountryByCode("de");
+//        rest.fetchCovidDataForCountryByCode("de");
 //        System.out.println("Result: " + rest.getNewestCovidEntryForCountryByCode("de"));
-//        rest.getNewestCovidEntryForCountryByCode("no");
+        rest.getNewestCovidEntryForCountryByCode("gl");
 
     }
 
