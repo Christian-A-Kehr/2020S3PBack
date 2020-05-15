@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +112,7 @@ public class CountryResource
                 catch (ProtocolException ex)
                 {
                     System.out.println(Arrays.toString(ex.getStackTrace()));
+                    return GSON.toJson(ex.getStackTrace());
                 }
                 catch (SocketTimeoutException ex)
                 {
@@ -120,6 +122,7 @@ public class CountryResource
                 catch (IOException ex)
                 {
                     System.out.println(Arrays.toString(ex.getStackTrace()));
+                    return GSON.toJson(ex.getStackTrace());
                 }
 
                 result = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
@@ -129,7 +132,7 @@ public class CountryResource
             DateTimeFormatter format = DateTimeFormatter.ofPattern("EE MMM dd HH:mm:ss 'CEST' yyyy", Locale.ENGLISH);
             // database date shenanigans requires me to substract one from result to get correct day
             LocalDate covidDate = LocalDate.parse(result.getDate(), format).minusDays(0);
-            LocalDate yesterdayDate = LocalDate.now().minusDays(1);
+            LocalDate yesterdayDate = LocalDate.now(ZoneId.of("UTC")).minusDays(1);
             System.out.println("Last db date: " + covidDate.toString());
             System.out.println("Yesterday date: " + yesterdayDate.toString());
 
@@ -144,6 +147,7 @@ public class CountryResource
                 catch (ProtocolException ex)
                 {
                     System.out.println(Arrays.toString(ex.getStackTrace()));
+                    return GSON.toJson(ex.getStackTrace());
                 }
                 catch (SocketTimeoutException ex)
                 {
@@ -153,6 +157,7 @@ public class CountryResource
                 catch (IOException ex)
                 {
                     System.out.println(Arrays.toString(ex.getStackTrace()));
+                    return GSON.toJson(ex.getStackTrace());
                 }
 
                 result = FACADE.getNewestInternalCovidEntryForCountryByCode(code);
